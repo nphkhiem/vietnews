@@ -1,0 +1,63 @@
+name: VietNews
+options:
+  bundleIdPrefix: com.khiemnph
+  deploymentTarget:
+    iOS: "16.0"
+packages:
+  FeedKit:
+    url: https://github.com/nmdias/FeedKit
+    from: 9.1.2
+  Factory:
+    url: https://github.com/hmlongco/Factory
+    exactVersion: 2.3.2
+targets:
+  VietNews:
+    type: application
+    platform: iOS
+    sources: [VietNews]
+    dependencies:
+      - package: FeedKit
+      - package: Factory
+    settings:
+      base:
+        SWIFT_VERSION: "5.9"
+        PRODUCT_BUNDLE_IDENTIFIER: com.khiemnph.vietnews
+    info:
+      path: VietNews/Info.plist
+      properties:
+        CFBundleDisplayName: "Thông Tấn Xã"
+        UILaunchScreen: {}
+        NYT_API_KEY: ""
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
+  VietNewsTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [VietNewsTests]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.khiemnph.vietnews.tests
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: VietNews
+  VietNewsUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [VietNewsUITests]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.khiemnph.vietnews.uitests
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: VietNews
+schemes:
+  VietNews:
+    build:
+      targets:
+        VietNews: all
+    test:
+      targets: [VietNewsTests, VietNewsUITests]
