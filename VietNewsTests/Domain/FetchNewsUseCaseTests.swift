@@ -79,6 +79,7 @@ final class FetchNewsUseCaseTests: XCTestCase {
         XCTAssertEqual(result.articles, stale.articles)
         XCTAssertTrue(result.isFromCache)
         XCTAssertEqual(result.lastUpdated, stale.fetchedAt)
+        XCTAssertEqual(result.failedSources, NewsSource.allCases)
     }
 
     func test_givenFetchFailure_whenNoCacheExists_thenRethrowsError() async {
