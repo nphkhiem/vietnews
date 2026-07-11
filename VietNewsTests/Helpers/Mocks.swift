@@ -39,6 +39,21 @@ final class MockCacheRepository: CacheRepository {
     }
 }
 
+final class StubNetworkService: NetworkService {
+    var result: Result<Data, Error> = .success(Data())
+    private(set) var requestedURLs: [URL] = []
+
+    func data(from url: URL) async throws -> Data {
+        requestedURLs.append(url)
+        return try result.get()
+    }
+}
+
+final class StubRSSParser: RSSParsing {
+    var items: [RSSItemDTO] = []
+    func parse(_ data: Data) throws -> [RSSItemDTO] { items }
+}
+
 enum TestFactory {
     static func article(
         url: String = "https://example.com/a1",
