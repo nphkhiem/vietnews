@@ -54,4 +54,18 @@ final class UserPreferencesTests: XCTestCase {
         sut.substackFeeds = custom
         XCTAssertEqual(UserPreferences(defaults: defaults).substackFeeds, custom)
     }
+
+    func test_givenNoStoredMaxArticles_whenReadingMaxArticles_thenDefaultsTo15() {
+        XCTAssertEqual(sut.maxArticles, 15)
+    }
+
+    func test_givenValidMaxArticlesSet_whenReadingFromNewInstance_thenPersistsAcrossInstances() {
+        sut.maxArticles = 50
+        XCTAssertEqual(UserPreferences(defaults: defaults).maxArticles, 50)
+    }
+
+    func test_givenInvalidMaxArticlesValue_whenSetting_thenSnapsTo15() {
+        sut.maxArticles = 22
+        XCTAssertEqual(sut.maxArticles, 15)
+    }
 }
