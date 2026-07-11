@@ -1,0 +1,24 @@
+{
+  "data": {
+    "children": [
+      {
+        "data": {
+          "title": "New chip breaks efficiency record",
+          "permalink": "/r/technology/comments/abc123/new_chip/",
+          "created_utc": 1783989000,
+          "thumbnail": "https://b.thumbs.redditmedia.com/thumb1.jpg",
+          "selftext": ""
+        }
+      },
+      {
+        "data": {
+          "title": "Ask: best laptop 2026?",
+          "permalink": "/r/technology/comments/def456/ask_best/",
+          "created_utc": 1783985400,
+          "thumbnail": "self",
+          "selftext": "Looking for recommendations under $1500."
+        }
+      }
+    ]
+  }
+}
