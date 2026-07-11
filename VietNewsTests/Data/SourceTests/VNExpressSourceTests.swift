@@ -22,8 +22,9 @@ final class VNExpressSourceTests: XCTestCase {
 
         _ = try await sut.fetch(category: .sport, language: .vietnamese)
 
+        let requestedURLs = await network.requestedURLs
         XCTAssertEqual(
-            network.requestedURLs.first?.absoluteString,
+            requestedURLs.first?.absoluteString,
             "https://vnexpress.net/rss/the-thao.rss"
         )
     }
@@ -33,8 +34,9 @@ final class VNExpressSourceTests: XCTestCase {
 
         _ = try await sut.fetch(category: .sport, language: .english)
 
+        let requestedURLs = await network.requestedURLs
         XCTAssertEqual(
-            network.requestedURLs.first?.absoluteString,
+            requestedURLs.first?.absoluteString,
             "https://e.vnexpress.net/rss/sports.rss"
         )
     }
@@ -71,6 +73,7 @@ final class VNExpressSourceTests: XCTestCase {
         XCTAssertFalse(sut.supports(category: .game, language: .english))
         let articles = try await sut.fetch(category: .game, language: .english)
         XCTAssertTrue(articles.isEmpty)
-        XCTAssertTrue(network.requestedURLs.isEmpty)
+        let requestedURLs = await network.requestedURLs
+        XCTAssertTrue(requestedURLs.isEmpty)
     }
 }

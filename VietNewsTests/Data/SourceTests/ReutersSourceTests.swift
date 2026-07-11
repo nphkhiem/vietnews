@@ -20,8 +20,9 @@ final class ReutersSourceTests: XCTestCase {
 
         _ = try await sut.fetch(category: .world, language: .english)
 
+        let requestedURLs = await network.requestedURLs
         XCTAssertEqual(
-            network.requestedURLs.first?.absoluteString,
+            requestedURLs.first?.absoluteString,
             "https://www.reutersagency.com/feed/?best-topics=top-news&post_type=best"
         )
     }
