@@ -86,7 +86,7 @@ struct NewsFeedView: View {
                         .foregroundStyle(.secondary)
                 }
                 ForEach(viewModel.articles) { article in
-                    ArticleRowView(article: article)
+                    ArticleRowView(article: article, language: viewModel.language)
                         .onTapGesture { presentedArticle = article }
                 }
             }
