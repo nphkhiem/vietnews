@@ -178,10 +178,8 @@ final class NewsFeedViewModelTests: XCTestCase {
         articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
         let sut = makeSUT()
         await sut.start()
-        await sut.selectCategory(.game) // available in English (default vietnamese... wait, start with English)
-
         await sut.setLanguage(.english)
-        await sut.selectCategory(.game) // now valid, English selected
+        await sut.selectCategory(.game)
         await sut.setLanguage(.vietnamese) // .game becomes unavailable
 
         XCTAssertEqual(sut.selectedCategory, .hotNews)
