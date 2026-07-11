@@ -15,7 +15,7 @@ final class ContainerRegistrationTests: XCTestCase {
         XCTAssertTrue(first === second)
     }
 
-    func test_givenContainer_whenResolvingNewsSourceAdapters_thenAllFiveAreRegistered() {
+    func test_givenContainer_whenResolvingNewsSourceAdapters_thenAllSixAreRegistered() {
         let adapters = Container.shared.newsSourceAdapters()
 
         XCTAssertEqual(adapters.count, 6)
