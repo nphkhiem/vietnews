@@ -9,7 +9,7 @@ struct NewsFeedView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 CategoryTabBar(
-                    categories: NewsCategory.allCases,
+                    categories: NewsCategory.allCases.filter { $0.isAvailable(in: viewModel.language) },
                     selected: viewModel.selectedCategory,
                     language: viewModel.language,
                     onSelect: { category in
