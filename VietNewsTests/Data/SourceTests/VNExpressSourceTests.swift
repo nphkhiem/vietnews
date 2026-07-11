@@ -76,4 +76,15 @@ final class VNExpressSourceTests: XCTestCase {
         let requestedURLs = await network.requestedURLs
         XCTAssertTrue(requestedURLs.isEmpty)
     }
+
+    func test_givenEnglishLanguage_whenCheckingSupportForCarSocialGame_thenReturnsFalseToAvoidDuplicateContent() {
+        let sut = VNExpressSource.make(network: network, parser: parser)
+
+        XCTAssertFalse(sut.supports(category: .car, language: .english))
+        XCTAssertFalse(sut.supports(category: .social, language: .english))
+        XCTAssertFalse(sut.supports(category: .game, language: .english))
+        // Vietnamese is unaffected — .car/.social keep their distinct sections
+        XCTAssertTrue(sut.supports(category: .car, language: .vietnamese))
+        XCTAssertTrue(sut.supports(category: .social, language: .vietnamese))
+    }
 }
