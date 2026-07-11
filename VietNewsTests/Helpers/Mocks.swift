@@ -39,13 +39,17 @@ final class MockCacheRepository: CacheRepository {
     }
 }
 
-final class StubNetworkService: NetworkService {
+actor StubNetworkService: NetworkService {
     var result: Result<Data, Error> = .success(Data())
     private(set) var requestedURLs: [URL] = []
 
     func data(from url: URL) async throws -> Data {
         requestedURLs.append(url)
         return try result.get()
+    }
+
+    func setResult(_ newResult: Result<Data, Error>) {
+        result = newResult
     }
 }
 

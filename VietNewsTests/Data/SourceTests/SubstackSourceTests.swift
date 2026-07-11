@@ -39,7 +39,8 @@ final class SubstackSourceTests: XCTestCase {
 
         let articles = try await sut.fetch(category: .technology, language: .english)
 
-        XCTAssertEqual(network.requestedURLs.count, 2) // both technology feeds, not the work feed
+        let requestedURLs = await network.requestedURLs
+        XCTAssertEqual(requestedURLs.count, 2) // both technology feeds, not the work feed
         XCTAssertEqual(articles.count, 2)
         XCTAssertEqual(articles[0].source, .substack)
         XCTAssertEqual(articles[0].category, .technology)
@@ -47,7 +48,7 @@ final class SubstackSourceTests: XCTestCase {
 
     func test_givenFeedRequestFails_whenFetching_thenReturnsEmptyArticlesWithoutThrowing() async throws {
         let network = StubNetworkService()
-        network.result = .failure(NewsError.networkUnavailable)
+        await network.setResult(.failure(NewsError.networkUnavailable))
         let sut = SubstackSource(
             network: network, parser: StubRSSParser(), feeds: { [self.techFeed] }
         )
