@@ -1,21 +1,6 @@
 import XCTest
 @testable import VietNews
 
-final class StubNetworkService: NetworkService {
-    var result: Result<Data, Error> = .success(Data())
-    private(set) var requestedURLs: [URL] = []
-
-    func data(from url: URL) async throws -> Data {
-        requestedURLs.append(url)
-        return try result.get()
-    }
-}
-
-final class StubRSSParser: RSSParsing {
-    var items: [RSSItemDTO] = []
-    func parse(_ data: Data) throws -> [RSSItemDTO] { items }
-}
-
 final class VNExpressSourceTests: XCTestCase {
     private var network: StubNetworkService!
     private var parser: StubRSSParser!
