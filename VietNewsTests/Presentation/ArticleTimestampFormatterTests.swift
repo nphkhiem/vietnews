@@ -43,4 +43,9 @@ final class ArticleTimestampFormatterTests: XCTestCase {
         let date = now.addingTimeInterval(-3 * 86400)
         XCTAssertEqual(ArticleTimestampFormatter.string(for: date, language: .vietnamese, now: now), "3 ngày trước")
     }
+
+    func test_givenArticleExactlySevenDaysOld_whenFormatting_thenShowsDaysAgo() {
+        let date = now.addingTimeInterval(-7 * 86400)
+        XCTAssertEqual(ArticleTimestampFormatter.string(for: date, language: .english, now: now), "7 days ago")
+    }
 }

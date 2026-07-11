@@ -58,7 +58,7 @@ enum ArticleTimestampFormatter {
             return isVietnamese ? "\(hours) giờ trước" : "\(hours) hour\(hours == 1 ? "" : "s") ago"
         }
 
-        if seconds < 7 * 86400 {
+        if seconds <= 7 * 86400 {
             let days = Int(seconds / 86400)
             return isVietnamese ? "\(days) ngày trước" : "\(days) day\(days == 1 ? "" : "s") ago"
         }
