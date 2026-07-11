@@ -19,10 +19,12 @@ enum VNExpressSource {
         .world: "world",
         .finance: "business",
         .work: "life",
-        .technology: "tech",
-        .car: "tech",
-        .social: "life",
-        .game: "tech"
+        .technology: "tech"
+        // .car, .social, .game intentionally omitted: e.vnexpress.net has no
+        // distinct section for any of them (would otherwise collide with
+        // .technology's "tech" or .work's "life", producing duplicate
+        // content). RedditSource provides genuinely distinct content for
+        // all three in English mode instead.
     ]
 
     static func make(network: NetworkService, parser: RSSParsing) -> RSSFeedSource {
