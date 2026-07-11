@@ -10,6 +10,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         options connectionOptions: UIScene.ConnectionOptions
     ) {
         guard let windowScene = scene as? UIWindowScene else { return }
+        UITestSupport.configureIfNeeded()
         let window = UIWindow(windowScene: windowScene)
         window.rootViewController = UIHostingController(rootView: RootView())
         self.window = window
