@@ -72,3 +72,23 @@ enum TestFactory {
         )
     }
 }
+
+final class MockRefreshScheduler: RefreshScheduling {
+    var onTick: (() -> Void)?
+    private(set) var startedInterval: TimeInterval?
+    private(set) var startCallCount = 0
+    private(set) var stopCallCount = 0
+
+    func start(interval: TimeInterval) {
+        startCallCount += 1
+        startedInterval = interval
+    }
+
+    func stop() {
+        stopCallCount += 1
+    }
+
+    func fireTick() {
+        onTick?()
+    }
+}
