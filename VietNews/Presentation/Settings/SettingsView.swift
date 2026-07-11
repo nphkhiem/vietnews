@@ -27,6 +27,18 @@ struct SettingsView: View {
                     }
                 }
 
+                Section(isVietnamese ? "Số lượng tin tối đa" : "Max articles per category") {
+                    Picker(
+                        isVietnamese ? "Số lượng tin tối đa" : "Max articles",
+                        selection: $viewModel.maxArticles
+                    ) {
+                        ForEach([15, 30, 50, 70], id: \.self) { count in
+                            Text("\(count)").tag(count)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
                 Section(isVietnamese ? "Substack đã theo dõi" : "Substack subscriptions") {
                     ForEach(viewModel.substackFeeds, id: \.url) { feed in
                         VStack(alignment: .leading, spacing: 2) {

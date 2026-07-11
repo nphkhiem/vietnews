@@ -95,6 +95,12 @@ extension Container {
 
     @MainActor
     var settingsViewModel: Factory<SettingsViewModel> {
-        self { SettingsViewModel(preferences: self.userPreferences(), scheduler: self.refreshScheduler()) }.singleton
+        self {
+            SettingsViewModel(
+                preferences: self.userPreferences(),
+                scheduler: self.refreshScheduler(),
+                cacheRepository: self.cacheRepository()
+            )
+        }.singleton
     }
 }
