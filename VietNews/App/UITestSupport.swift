@@ -5,6 +5,10 @@ enum UITestSupport {
     static func configureIfNeeded() {
         guard ProcessInfo.processInfo.arguments.contains("-uiTesting") else { return }
 
+        if let bundleID = Bundle.main.bundleIdentifier {
+            UserDefaults.standard.removePersistentDomain(forName: bundleID)
+        }
+
         struct StubArticleRepository: ArticleRepository {
             func fetchArticles(category: NewsCategory, language: Language) async throws -> FetchResult {
                 let articles = (1...3).map { index in
