@@ -7,11 +7,32 @@ final class MockArticleRepository: ArticleRepository {
     private(set) var lastCategory: NewsCategory?
     private(set) var lastLanguage: Language?
 
+    /// When set, `fetchArticles` for this category suspends until `releaseGatedFetch()` is
+    /// called, letting tests deterministically drive interleaving of concurrent fetches
+    /// (e.g. proving a slow, stale request doesn't overwrite a faster, newer one).
+    private var gatedCategory: NewsCategory?
+    private var gateContinuation: CheckedContinuation<Void, Never>?
+    private(set) var didEnterGatedFetch = false
+
+    func gateFetch(for category: NewsCategory) {
+        gatedCategory = category
+    }
+
+    func releaseGatedFetch() {
+        gateContinuation?.resume()
+        gateContinuation = nil
+    }
+
     func fetchArticles(category: NewsCategory, language: Language) async throws -> FetchResult {
         fetchCallCount += 1
         lastCategory = category
         lastLanguage = language
-        return try result.get()
+        let outcome = result
+        if category == gatedCategory {
+            didEnterGatedFetch = true
+            await withCheckedContinuation { gateContinuation = $0 }
+        }
+        return try outcome.get()
     }
 }
 

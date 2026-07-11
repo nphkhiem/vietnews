@@ -141,4 +141,36 @@ final class NewsFeedViewModelTests: XCTestCase {
         // Displayed articles unchanged — prefetch must not touch UI state
         XCTAssertEqual(sut.selectedCategory, .world)
     }
+
+    func test_givenSlowStaleFetch_whenCategorySwitchedBeforeItResolves_thenStaleResultDoesNotOverwriteNewSelection() async {
+        let hotArticles = [TestFactory.article(title: "Hot", category: .hotNews)]
+        let sportArticles = [TestFactory.article(title: "Sport", category: .sport)]
+        articleRepo.result = .success(FetchResult(articles: hotArticles, failedSources: []))
+        articleRepo.gateFetch(for: .hotNews) // the initial hotNews load will suspend mid-flight
+        let sut = makeSUT()
+
+        let slowStart = Task { await sut.start() }
+
+        // Let the slow hotNews fetch actually begin (i.e. reach the point where it's suspended
+        // awaiting release) before switching categories, without relying on timing/sleeps.
+        while !articleRepo.didEnterGatedFetch {
+            await Task.yield()
+        }
+
+        // User switches to Sport while hotNews is still in flight; this fetch is not gated
+        // and resolves immediately.
+        articleRepo.result = .success(FetchResult(articles: sportArticles, failedSources: []))
+        await sut.selectCategory(.sport)
+
+        XCTAssertEqual(sut.selectedCategory, .sport)
+        XCTAssertEqual(sut.articles, sportArticles)
+
+        // Now let the stale hotNews fetch finally resolve.
+        articleRepo.releaseGatedFetch()
+        await slowStart.value
+
+        // The late hotNews response must not have clobbered the currently displayed Sport articles.
+        XCTAssertEqual(sut.selectedCategory, .sport)
+        XCTAssertEqual(sut.articles, sportArticles)
+    }
 }
