@@ -13,7 +13,7 @@ final class RedditSourceTests: XCTestCase {
         let sut = RedditSource(network: StubNetworkService())
         XCTAssertTrue(sut.supports(category: .technology, language: .english))
         XCTAssertTrue(sut.supports(category: .technology, language: .vietnamese) == false)
-        XCTAssertTrue(sut.supports(category: .social, language: .english)) // r/vietnam
+        XCTAssertFalse(sut.supports(category: .social, language: .english)) // removed: Social is now Vietnamese-only, never requested in English
     }
 
     func test_givenTechnologyCategory_whenFetching_thenRequestsHotJSONForSubreddit() async throws {

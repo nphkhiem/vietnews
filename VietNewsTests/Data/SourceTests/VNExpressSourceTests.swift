@@ -87,4 +87,9 @@ final class VNExpressSourceTests: XCTestCase {
         XCTAssertTrue(sut.supports(category: .car, language: .vietnamese))
         XCTAssertTrue(sut.supports(category: .social, language: .vietnamese))
     }
+
+    func test_givenVietnameseLanguage_whenCheckingSupportForGame_thenReturnsFalse() {
+        let sut = VNExpressSource.make(network: network, parser: parser)
+        XCTAssertFalse(sut.supports(category: .game, language: .vietnamese))
+    }
 }
