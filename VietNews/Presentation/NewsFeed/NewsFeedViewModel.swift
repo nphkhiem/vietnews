@@ -58,20 +58,24 @@ final class NewsFeedViewModel: ObservableObject {
         if articles.isEmpty {
             state = .loading
         }
+        let requestedCategory = selectedCategory
+        let requestedLanguage = language
         do {
-            let result = try await fetchNews.execute(category: selectedCategory, language: language)
-            apply(result)
+            let result = try await fetchNews.execute(category: requestedCategory, language: requestedLanguage)
+            apply(result, for: requestedCategory, language: requestedLanguage)
         } catch {
-            applyFailure(error)
+            applyFailure(error, for: requestedCategory, language: requestedLanguage)
         }
     }
 
     func refresh() async {
+        let requestedCategory = selectedCategory
+        let requestedLanguage = language
         do {
-            let result = try await refreshNews.execute(category: selectedCategory, language: language)
-            apply(result)
+            let result = try await refreshNews.execute(category: requestedCategory, language: requestedLanguage)
+            apply(result, for: requestedCategory, language: requestedLanguage)
         } catch {
-            applyFailure(error)
+            applyFailure(error, for: requestedCategory, language: requestedLanguage)
         }
     }
 
@@ -102,7 +106,15 @@ final class NewsFeedViewModel: ObservableObject {
         }
     }
 
-    private func apply(_ result: NewsFeedResult) {
+    /// Ignores responses that no longer match the currently selected category/language —
+    /// a stale in-flight request (e.g. from a prior category or a background refresh tick)
+    /// must not clobber state for whatever the user has since switched to.
+    private func isStale(_ category: NewsCategory, _ language: Language) -> Bool {
+        category != selectedCategory || language != self.language
+    }
+
+    private func apply(_ result: NewsFeedResult, for category: NewsCategory, language: Language) {
+        guard !isStale(category, language) else { return }
         articles = result.articles
         failedSources = result.failedSources
         lastUpdated = result.lastUpdated
@@ -110,7 +122,8 @@ final class NewsFeedViewModel: ObservableObject {
         state = result.articles.isEmpty ? .empty : .loaded
     }
 
-    private func applyFailure(_ error: Error) {
+    private func applyFailure(_ error: Error, for category: NewsCategory, language: Language) {
+        guard !isStale(category, language) else { return }
         if articles.isEmpty {
             state = .failed(errorMessage(for: error))
         }
