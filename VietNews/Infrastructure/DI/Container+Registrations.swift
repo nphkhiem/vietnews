@@ -52,7 +52,12 @@ extension Container {
     }
 
     var articleRepository: Factory<ArticleRepository> {
-        self { RemoteArticleRepository(adapters: self.newsSourceAdapters()) }.singleton
+        self {
+            RemoteArticleRepository(
+                adapters: self.newsSourceAdapters(),
+                maxArticles: { self.userPreferences().maxArticles }
+            )
+        }.singleton
     }
 
     var cacheRepository: Factory<CacheRepository> {

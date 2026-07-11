@@ -3,10 +3,16 @@ import Foundation
 final class RemoteArticleRepository: ArticleRepository {
     private let adapters: [NewsSourceAdapter]
     private let perSourceTimeout: TimeInterval
+    private let maxArticles: () -> Int
 
-    init(adapters: [NewsSourceAdapter], perSourceTimeout: TimeInterval = 10) {
+    init(
+        adapters: [NewsSourceAdapter],
+        perSourceTimeout: TimeInterval = 10,
+        maxArticles: @escaping () -> Int = { 15 }
+    ) {
         self.adapters = adapters
         self.perSourceTimeout = perSourceTimeout
+        self.maxArticles = maxArticles
     }
 
     func fetchArticles(category: NewsCategory, language: Language) async throws -> FetchResult {
@@ -41,7 +47,7 @@ final class RemoteArticleRepository: ArticleRepository {
             .compactMap(\.1)
             .flatMap { $0 }
             .sorted { $0.publishedAt > $1.publishedAt }
-        return FetchResult(articles: Array(merged.prefix(15)), failedSources: failedSources)
+        return FetchResult(articles: Array(merged.prefix(maxArticles())), failedSources: failedSources)
     }
 
     private static func withTimeout<T: Sendable>(
