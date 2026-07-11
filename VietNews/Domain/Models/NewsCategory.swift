@@ -23,4 +23,12 @@ enum NewsCategory: String, CaseIterable, Codable {
         case (.game, .vietnamese): return "Trò chơi"
         }
     }
+
+    func isAvailable(in language: Language) -> Bool {
+        switch self {
+        case .game: return language == .english
+        case .social: return language == .vietnamese
+        default: return true
+        }
+    }
 }

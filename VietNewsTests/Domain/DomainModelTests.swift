@@ -36,4 +36,22 @@ final class DomainModelTests: XCTestCase {
         XCTAssertEqual(Language.vietnamese.rawValue, "vi")
         XCTAssertEqual(Language.english.rawValue, "en")
     }
+
+    func test_givenGameCategory_whenCheckingAvailability_thenOnlyAvailableInEnglish() {
+        XCTAssertTrue(NewsCategory.game.isAvailable(in: .english))
+        XCTAssertFalse(NewsCategory.game.isAvailable(in: .vietnamese))
+    }
+
+    func test_givenSocialCategory_whenCheckingAvailability_thenOnlyAvailableInVietnamese() {
+        XCTAssertTrue(NewsCategory.social.isAvailable(in: .vietnamese))
+        XCTAssertFalse(NewsCategory.social.isAvailable(in: .english))
+    }
+
+    func test_givenOtherCategories_whenCheckingAvailability_thenAvailableInBothLanguages() {
+        let unrestricted: [NewsCategory] = [.sport, .hotNews, .world, .finance, .work, .technology, .car]
+        for category in unrestricted {
+            XCTAssertTrue(category.isAvailable(in: .english))
+            XCTAssertTrue(category.isAvailable(in: .vietnamese))
+        }
+    }
 }
