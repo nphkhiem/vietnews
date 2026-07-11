@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>Thể thao - VnExpress RSS</title>
+  <link>https://vnexpress.net/the-thao</link>
+  <item>
+    <title>Việt Nam thắng trận mở màn</title>
+    <link>https://vnexpress.net/viet-nam-thang-tran-mo-man-4700001.html</link>
+    <description><![CDATA[<a href="https://vnexpress.net/viet-nam-thang-tran-mo-man-4700001.html"><img src="https://i1-thethao.vnecdn.net/2026/07/10/doi-tuyen.jpg" /></a>Đội tuyển giành chiến thắng 2-0 trong trận mở màn.]]></description>
+    <pubDate>Fri, 10 Jul 2026 08:30:00 +0700</pubDate>
+  </item>
+  <item>
+    <title>Second Item Without Image</title>
+    <link>https://vnexpress.net/second-item-4700002.html</link>
+    <description><![CDATA[Plain description, no markup.]]></description>
+    <pubDate>Fri, 10 Jul 2026 07:15:00 +0700</pubDate>
+  </item>
+</channel>
+</rss>
