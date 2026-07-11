@@ -1,4 +1,7 @@
 name: VietNews
+configFiles:
+  Debug: Secrets.xcconfig
+  Release: Secrets.xcconfig
 options:
   bundleIdPrefix: com.khiemnph
   deploymentTarget:
@@ -27,7 +30,7 @@ targets:
       properties:
         CFBundleDisplayName: "Thông Tấn Xã"
         UILaunchScreen: {}
-        NYT_API_KEY: ""
+        NYT_API_KEY: "$(NYT_API_KEY)"
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
           UISceneConfigurations:
