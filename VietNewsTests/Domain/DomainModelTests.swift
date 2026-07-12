@@ -26,6 +26,10 @@ final class DomainModelTests: XCTestCase {
         XCTAssertEqual(NewsCategory.allCases.count, 9)
     }
 
+    func test_givenNewsCategory_whenCheckingAllCases_thenHotNewsIsFirst() {
+        XCTAssertEqual(NewsCategory.allCases.first, .hotNews)
+    }
+
     func test_givenCategory_whenDisplayNameRequested_thenReturnsLocalizedName() {
         XCTAssertEqual(NewsCategory.sport.displayName(in: .english), "Sport")
         XCTAssertEqual(NewsCategory.sport.displayName(in: .vietnamese), "Thể thao")

@@ -1,5 +1,5 @@
 enum NewsCategory: String, CaseIterable, Codable {
-    case sport, hotNews, world, finance, work, technology, car, social, game
+    case hotNews, sport, world, finance, work, technology, car, social, game
 
     func displayName(in language: Language) -> String {
         switch (self, language) {

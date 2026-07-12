@@ -20,16 +20,6 @@ struct NewsFeedView: View {
             }
             .navigationTitle("Thông Tấn Xã")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Picker("Language", selection: languageBinding) {
-                        Text("VN").tag(Language.vietnamese)
-                        Text("EN").tag(Language.english)
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(width: 100)
-                }
-            }
         }
         .task { await viewModel.start() }
         .onChange(of: scenePhase) { phase in
@@ -46,13 +36,6 @@ struct NewsFeedView: View {
             SafariView(url: article.url)
                 .ignoresSafeArea()
         }
-    }
-
-    private var languageBinding: Binding<Language> {
-        Binding(
-            get: { viewModel.language },
-            set: { newValue in Task { await viewModel.setLanguage(newValue) } }
-        )
     }
 
     @ViewBuilder
