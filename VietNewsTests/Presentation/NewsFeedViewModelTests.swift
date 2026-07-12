@@ -129,14 +129,14 @@ final class NewsFeedViewModelTests: XCTestCase {
     func test_givenSelectedCategory_whenPrefetchingAdjacent_thenWarmsNeighborCaches() async {
         articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
         let sut = makeSUT()
-        await sut.selectCategory(.world) // neighbors in NewsCategory.allCases: hotNews and finance
+        await sut.selectCategory(.world) // neighbors in NewsCategory.allCases: sport and finance
         let callsBeforePrefetch = articleRepo.fetchCallCount
 
         await sut.prefetchAdjacentCategories()
 
         // Two neighbor fetches hit the repository (cache misses); results land in cache
         XCTAssertEqual(articleRepo.fetchCallCount, callsBeforePrefetch + 2)
-        XCTAssertNotNil(cacheRepo.stored["hotNews_vi"])
+        XCTAssertNotNil(cacheRepo.stored["sport_vi"])
         XCTAssertNotNil(cacheRepo.stored["finance_vi"])
         // Displayed articles unchanged - prefetch must not touch UI state
         XCTAssertEqual(sut.selectedCategory, .world)
