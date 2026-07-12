@@ -110,9 +110,9 @@ final class NewsFeedViewModel: ObservableObject {
         }
     }
 
-    /// Ignores responses that no longer match the currently selected category/language —
-    /// a stale in-flight request (e.g. from a prior category or a background refresh tick)
-    /// must not clobber state for whatever the user has since switched to.
+    /// Ignores responses that no longer match the currently selected category/language
+    /// (a stale in-flight request, e.g. from a prior category or a background refresh
+    /// tick, must not clobber state for whatever the user has since switched to).
     private func isStale(_ category: NewsCategory, _ language: Language) -> Bool {
         category != selectedCategory || language != self.language
     }

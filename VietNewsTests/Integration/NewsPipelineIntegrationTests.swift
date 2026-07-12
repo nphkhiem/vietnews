@@ -58,7 +58,7 @@ final class NewsPipelineIntegrationTests: XCTestCase {
 
         let second = try await useCase.execute(category: .sport, language: .vietnamese)
 
-        XCTAssertEqual(requestCount, 1) // no additional network call — served from disk cache
+        XCTAssertEqual(requestCount, 1) // no additional network call - served from disk cache
         XCTAssertTrue(second.isFromCache)
         XCTAssertEqual(second.articles.count, 2)
     }

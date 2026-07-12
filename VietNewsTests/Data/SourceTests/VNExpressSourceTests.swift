@@ -83,7 +83,7 @@ final class VNExpressSourceTests: XCTestCase {
         XCTAssertFalse(sut.supports(category: .car, language: .english))
         XCTAssertFalse(sut.supports(category: .social, language: .english))
         XCTAssertFalse(sut.supports(category: .game, language: .english))
-        // Vietnamese is unaffected — .car/.social keep their distinct sections
+        // Vietnamese is unaffected - .car/.social keep their distinct sections
         XCTAssertTrue(sut.supports(category: .car, language: .vietnamese))
         XCTAssertTrue(sut.supports(category: .social, language: .vietnamese))
     }
