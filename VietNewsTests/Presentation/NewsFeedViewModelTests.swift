@@ -138,7 +138,7 @@ final class NewsFeedViewModelTests: XCTestCase {
         XCTAssertEqual(articleRepo.fetchCallCount, callsBeforePrefetch + 2)
         XCTAssertNotNil(cacheRepo.stored["hotNews_vi"])
         XCTAssertNotNil(cacheRepo.stored["finance_vi"])
-        // Displayed articles unchanged — prefetch must not touch UI state
+        // Displayed articles unchanged - prefetch must not touch UI state
         XCTAssertEqual(sut.selectedCategory, .world)
     }
 
