@@ -9,15 +9,25 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
+    @Published var maxArticles: Int {
+        didSet {
+            preferences.maxArticles = maxArticles
+            try? cacheRepository.clearAll()
+        }
+    }
+
     @Published private(set) var substackFeeds: [SubstackFeed]
 
     private let preferences: UserPreferences
     private let scheduler: RefreshScheduling
+    private let cacheRepository: CacheRepository
 
-    init(preferences: UserPreferences, scheduler: RefreshScheduling) {
+    init(preferences: UserPreferences, scheduler: RefreshScheduling, cacheRepository: CacheRepository) {
         self.preferences = preferences
         self.scheduler = scheduler
+        self.cacheRepository = cacheRepository
         self.refreshInterval = preferences.refreshInterval
+        self.maxArticles = preferences.maxArticles
         self.substackFeeds = preferences.substackFeeds
     }
 

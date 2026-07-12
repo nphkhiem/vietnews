@@ -5,6 +5,7 @@ import XCTest
 final class SettingsViewModelTests: XCTestCase {
     private var preferences: UserPreferences!
     private var scheduler: MockRefreshScheduler!
+    private var cacheRepo: MockCacheRepository!
     private var defaults: UserDefaults!
     private let suiteName = "SettingsViewModelTests"
 
@@ -14,6 +15,7 @@ final class SettingsViewModelTests: XCTestCase {
         defaults.removePersistentDomain(forName: suiteName)
         preferences = UserPreferences(defaults: defaults)
         scheduler = MockRefreshScheduler()
+        cacheRepo = MockCacheRepository()
     }
 
     override func tearDown() {
@@ -22,7 +24,7 @@ final class SettingsViewModelTests: XCTestCase {
     }
 
     private func makeSUT() -> SettingsViewModel {
-        SettingsViewModel(preferences: preferences, scheduler: scheduler)
+        SettingsViewModel(preferences: preferences, scheduler: scheduler, cacheRepository: cacheRepo)
     }
 
     func test_givenStoredPreferences_whenInitializing_thenLoadsInitialValues() {
@@ -77,5 +79,20 @@ final class SettingsViewModelTests: XCTestCase {
 
         XCTAssertEqual(sut.substackFeeds.count, 1)
         XCTAssertEqual(preferences.substackFeeds.count, 1)
+    }
+
+    func test_givenStoredMaxArticles_whenInitializing_thenLoadsFromPreferences() {
+        preferences.maxArticles = 50
+        let sut = makeSUT()
+        XCTAssertEqual(sut.maxArticles, 50)
+    }
+
+    func test_givenChangingMaxArticles_whenSet_thenPersistsAndClearsCache() {
+        let sut = makeSUT()
+
+        sut.maxArticles = 30
+
+        XCTAssertEqual(preferences.maxArticles, 30)
+        XCTAssertEqual(cacheRepo.clearAllCallCount, 1)
     }
 }

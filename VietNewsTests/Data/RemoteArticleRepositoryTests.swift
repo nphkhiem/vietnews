@@ -116,4 +116,13 @@ final class RemoteArticleRepositoryTests: XCTestCase {
         XCTAssertEqual(result.articles.count, 2)
         XCTAssertEqual(result.failedSources, [.reuters])
     }
+
+    func test_givenCustomMaxArticles_whenFetching_thenCapsAtConfiguredValue() async throws {
+        let a = FakeAdapter(source: .vnexpress, result: .success(articles(40, source: .vnexpress, startingAt: 1_000)))
+        let sut = RemoteArticleRepository(adapters: [a], maxArticles: { 30 })
+
+        let result = try await sut.fetchArticles(category: .sport, language: .english)
+
+        XCTAssertEqual(result.articles.count, 30)
+    }
 }

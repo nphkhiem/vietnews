@@ -52,7 +52,12 @@ extension Container {
     }
 
     var articleRepository: Factory<ArticleRepository> {
-        self { RemoteArticleRepository(adapters: self.newsSourceAdapters()) }.singleton
+        self {
+            RemoteArticleRepository(
+                adapters: self.newsSourceAdapters(),
+                maxArticles: { self.userPreferences().maxArticles }
+            )
+        }.singleton
     }
 
     var cacheRepository: Factory<CacheRepository> {
@@ -90,6 +95,12 @@ extension Container {
 
     @MainActor
     var settingsViewModel: Factory<SettingsViewModel> {
-        self { SettingsViewModel(preferences: self.userPreferences(), scheduler: self.refreshScheduler()) }.singleton
+        self {
+            SettingsViewModel(
+                preferences: self.userPreferences(),
+                scheduler: self.refreshScheduler(),
+                cacheRepository: self.cacheRepository()
+            )
+        }.singleton
     }
 }
