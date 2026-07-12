@@ -24,10 +24,11 @@ final class FeedUITests: XCTestCase {
         XCTAssertTrue(sportArticle.waitForExistence(timeout: 5))
     }
 
-    func test_givenFeedShown_whenTogglingToEnglish_thenCategoryLabelsSwitchToEnglish() {
-        app.segmentedControls.buttons["EN"].tap()
+    func test_givenSettingsShown_whenTogglingToEnglish_thenLanguageSectionHeaderSwitchesToEnglish() {
+        app.tabBars.buttons["Cài đặt"].tap()
+        app.segmentedControls.buttons["English"].tap()
 
-        XCTAssertTrue(app.buttons["Sport"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Language"].waitForExistence(timeout: 5))
     }
 
     func test_givenFeedShown_whenSelectingSettingsTab_thenSettingsScreenAppears() {
