@@ -9,8 +9,11 @@ enum VNExpressSource {
         .work: "doi-song",
         .technology: "khoa-hoc-cong-nghe",
         .car: "oto-xe-may",
-        .social: "goc-nhin",
-        .game: "khoa-hoc-cong-nghe"
+        .social: "goc-nhin"
+        // .game intentionally omitted: Game is English-only (see
+        // NewsCategory.isAvailable), served by EurogamerSource instead —
+        // VNExpress has no standalone Vietnamese gaming section, and this
+        // avoids the .technology/.game content duplicate that existed before.
     ]
 
     private static let englishSections: [NewsCategory: String] = [
@@ -19,10 +22,12 @@ enum VNExpressSource {
         .world: "world",
         .finance: "business",
         .work: "life",
-        .technology: "tech",
-        .car: "tech",
-        .social: "life",
-        .game: "tech"
+        .technology: "tech"
+        // .car, .social, .game intentionally omitted: e.vnexpress.net has no
+        // distinct section for any of them (would otherwise collide with
+        // .technology's "tech" or .work's "life", producing duplicate
+        // content). RedditSource provides genuinely distinct content for
+        // all three in English mode instead.
     ]
 
     static func make(network: NetworkService, parser: RSSParsing) -> RSSFeedSource {

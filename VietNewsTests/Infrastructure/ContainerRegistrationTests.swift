@@ -15,10 +15,10 @@ final class ContainerRegistrationTests: XCTestCase {
         XCTAssertTrue(first === second)
     }
 
-    func test_givenContainer_whenResolvingNewsSourceAdapters_thenAllFiveAreRegistered() {
+    func test_givenContainer_whenResolvingNewsSourceAdapters_thenAllSixAreRegistered() {
         let adapters = Container.shared.newsSourceAdapters()
 
-        XCTAssertEqual(adapters.count, 5)
+        XCTAssertEqual(adapters.count, 6)
     }
 
     func test_givenOverriddenNetworkService_whenResolving_thenReturnsRegisteredStub() {

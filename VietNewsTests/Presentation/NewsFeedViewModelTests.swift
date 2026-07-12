@@ -173,4 +173,26 @@ final class NewsFeedViewModelTests: XCTestCase {
         XCTAssertEqual(sut.selectedCategory, .sport)
         XCTAssertEqual(sut.articles, sportArticles)
     }
+
+    func test_givenSelectedCategoryBecomesUnavailable_whenSettingLanguage_thenFallsBackToHotNews() async {
+        articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
+        let sut = makeSUT()
+        await sut.start()
+        await sut.setLanguage(.english)
+        await sut.selectCategory(.game)
+        await sut.setLanguage(.vietnamese) // .game becomes unavailable
+
+        XCTAssertEqual(sut.selectedCategory, .hotNews)
+    }
+
+    func test_givenSelectedCategoryStaysAvailable_whenSettingLanguage_thenSelectionUnchanged() async {
+        articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
+        let sut = makeSUT()
+        await sut.start()
+        await sut.selectCategory(.finance)
+
+        await sut.setLanguage(.english)
+
+        XCTAssertEqual(sut.selectedCategory, .finance)
+    }
 }

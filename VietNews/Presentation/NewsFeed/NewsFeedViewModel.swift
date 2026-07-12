@@ -90,6 +90,9 @@ final class NewsFeedViewModel: ObservableObject {
         guard newLanguage != language else { return }
         language = newLanguage
         preferences.language = newLanguage
+        if !selectedCategory.isAvailable(in: newLanguage) {
+            selectedCategory = .hotNews
+        }
         try? cacheRepository.clearAll()
         articles = []
         await load()
@@ -101,6 +104,7 @@ final class NewsFeedViewModel: ObservableObject {
         let neighbors = [index - 1, index + 1]
             .filter(all.indices.contains)
             .map { all[$0] }
+            .filter { $0.isAvailable(in: language) }
         for category in neighbors {
             _ = try? await fetchNews.execute(category: category, language: language)
         }

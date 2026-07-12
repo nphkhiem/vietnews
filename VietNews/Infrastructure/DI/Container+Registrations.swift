@@ -42,11 +42,15 @@ extension Container {
         }
     }
 
+    var eurogamerSource: Factory<NewsSourceAdapter> {
+        self { EurogamerSource.make(network: self.networkService(), parser: FeedKitRSSParser(parsingSource: .eurogamer)) }
+    }
+
     var newsSourceAdapters: Factory<[NewsSourceAdapter]> {
         self {
             [
                 self.vnexpressSource(), self.reutersSource(), self.substackSource(),
-                self.redditSource(), self.nytSource()
+                self.redditSource(), self.nytSource(), self.eurogamerSource()
             ]
         }
     }
