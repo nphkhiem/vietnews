@@ -1,0 +1,20 @@
+{
+  "results": [
+    {
+      "title": "Global summit reaches accord",
+      "abstract": "Leaders agreed on a joint framework.",
+      "url": "https://www.nytimes.com/2026/07/10/world/summit.html",
+      "published_date": "2026-07-10T08:00:00-04:00",
+      "multimedia": [
+        { "url": "https://static01.nyt.com/images/summit.jpg", "format": "Super Jumbo" }
+      ]
+    },
+    {
+      "title": "Story without media",
+      "abstract": "No image on this one.",
+      "url": "https://www.nytimes.com/2026/07/10/world/nomedia.html",
+      "published_date": "2026-07-10T06:30:00-04:00",
+      "multimedia": null
+    }
+  ]
+}
