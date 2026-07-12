@@ -11,9 +11,9 @@ enum VNExpressSource {
         .car: "oto-xe-may",
         .social: "goc-nhin"
         // .game intentionally omitted: Game is English-only (see
-        // NewsCategory.isAvailable), served by EurogamerSource instead —
-        // VNExpress has no standalone Vietnamese gaming section, and this
-        // avoids the .technology/.game content duplicate that existed before.
+        // NewsCategory.isAvailable), served by EurogamerSource instead
+        // (VNExpress has no standalone Vietnamese gaming section, and this
+        // avoids the .technology/.game content duplicate that existed before).
     ]
 
     private static let englishSections: [NewsCategory: String] = [

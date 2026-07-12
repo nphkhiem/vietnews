@@ -16,7 +16,7 @@ struct RedditSource: NewsSourceAdapter {
         // .social intentionally omitted: Social is Vietnamese-only (see
         // NewsCategory.isAvailable), and RedditSource is English-only overall
         // (see supports(category:language:) below), so this entry could
-        // never be reached — removed rather than left as dead configuration.
+        // never be reached - removed rather than left as dead configuration.
     ]
 
     init(network: NetworkService) {

@@ -9,7 +9,7 @@ final class RefreshNewsUseCaseTests: XCTestCase {
         let cacheRepo = MockCacheRepository()
         cacheRepo.stored["sport_vi"] = CachedArticles(
             articles: [TestFactory.article(url: "https://old.com/1")],
-            fetchedAt: fixedNow.addingTimeInterval(-10) // fresh — must be ignored
+            fetchedAt: fixedNow.addingTimeInterval(-10) // fresh - must be ignored
         )
         let fresh = [TestFactory.article(url: "https://new.com/1")]
         articleRepo.result = .success(FetchResult(articles: fresh, failedSources: []))
