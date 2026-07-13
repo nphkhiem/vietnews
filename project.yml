@@ -25,6 +25,7 @@ targets:
       base:
         SWIFT_VERSION: "5.9"
         PRODUCT_BUNDLE_IDENTIFIER: com.khiemnph.vietnews
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     info:
       path: VietNews/Info.plist
       properties:
