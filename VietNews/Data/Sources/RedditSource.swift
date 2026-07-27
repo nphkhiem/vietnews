@@ -24,13 +24,19 @@ struct RedditSource: NewsSourceAdapter {
     }
 
     func supports(category: NewsCategory, language: Language) -> Bool {
-        language == .english && Self.subreddits[category] != nil
+        !endpoints(category: category, language: language).isEmpty
+    }
+
+    func endpoints(category: NewsCategory, language: Language) -> [URL] {
+        guard language == .english,
+              let subreddit = Self.subreddits[category],
+              let url = URL(string: "https://www.reddit.com/r/\(subreddit)/hot.json?limit=15")
+        else { return [] }
+        return [url]
     }
 
     func fetch(category: NewsCategory, language: Language) async throws -> [Article] {
-        guard let subreddit = Self.subreddits[category],
-              let url = URL(string: "https://www.reddit.com/r/\(subreddit)/hot.json?limit=15")
-        else { return [] }
+        guard let url = endpoints(category: category, language: language).first else { return [] }
 
         let data = try await network.data(from: url)
         let listing: RedditListingDTO
