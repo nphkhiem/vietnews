@@ -46,15 +46,15 @@ final class RemoteArticleRepositoryTests: XCTestCase {
 
     func test_givenMultipleSuccessfulSources_whenFetching_thenMergesSortsAndCapsAt15() async throws {
         let a = FakeAdapter(source: .vnexpress, result: .success(articles(10, source: .vnexpress, startingAt: 1_000)))
-        let b = FakeAdapter(source: .reddit, result: .success(articles(10, source: .reddit, startingAt: 2_000)))
+        let b = FakeAdapter(source: .eurogamer, result: .success(articles(10, source: .eurogamer, startingAt: 2_000)))
         let sut = RemoteArticleRepository(adapters: [a, b])
 
         let result = try await sut.fetchArticles(category: .sport, language: .english)
 
         XCTAssertEqual(result.articles.count, 15)
         XCTAssertTrue(result.failedSources.isEmpty)
-        // newest first: all 10 reddit (epoch 2000+) precede vnexpress
-        XCTAssertEqual(result.articles.first?.source, .reddit)
+        // newest first: all 10 eurogamer (epoch 2000+) precede vnexpress
+        XCTAssertEqual(result.articles.first?.source, .eurogamer)
         let dates = result.articles.map(\.publishedAt)
         XCTAssertEqual(dates, dates.sorted(by: >))
     }
@@ -87,7 +87,7 @@ final class RemoteArticleRepositoryTests: XCTestCase {
         let unsupported = FakeAdapter(
             source: .nyt, supported: false, result: .failure(NewsError.networkUnavailable)
         )
-        let ok = FakeAdapter(source: .reddit, result: .success(articles(2, source: .reddit, startingAt: 1_000)))
+        let ok = FakeAdapter(source: .eurogamer, result: .success(articles(2, source: .eurogamer, startingAt: 1_000)))
         let sut = RemoteArticleRepository(adapters: [unsupported, ok])
 
         let result = try await sut.fetchArticles(category: .game, language: .english)
@@ -112,7 +112,7 @@ final class RemoteArticleRepositoryTests: XCTestCase {
             result: .success(articles(5, source: .bbc, startingAt: 9_000)),
             delay: 2.0
         )
-        let fast = FakeAdapter(source: .reddit, result: .success(articles(2, source: .reddit, startingAt: 1_000)))
+        let fast = FakeAdapter(source: .eurogamer, result: .success(articles(2, source: .eurogamer, startingAt: 1_000)))
         let sut = RemoteArticleRepository(adapters: [slow, fast], perSourceTimeout: 0.2)
 
         let result = try await sut.fetchArticles(category: .sport, language: .english)

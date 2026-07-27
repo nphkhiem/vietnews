@@ -31,10 +31,6 @@ extension Container {
         }
     }
 
-    var redditSource: Factory<NewsSourceAdapter> {
-        self { RedditSource(network: self.networkService()) }
-    }
-
     var nytSource: Factory<NewsSourceAdapter> {
         self {
             let apiKey = Bundle.main.object(forInfoDictionaryKey: "NYT_API_KEY") as? String ?? ""
@@ -50,7 +46,7 @@ extension Container {
         self {
             [
                 self.vnexpressSource(), self.bbcSource(), self.substackSource(),
-                self.redditSource(), self.nytSource(), self.eurogamerSource()
+                self.nytSource(), self.eurogamerSource()
             ]
         }
     }

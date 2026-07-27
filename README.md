@@ -4,7 +4,7 @@
 ![Platform](https://img.shields.io/badge/platform-iOS-lightgrey?logo=apple)
 ![iOS](https://img.shields.io/badge/iOS-16.0%2B-blue)
 
-A centralized iOS news reader that pulls from multiple sources into one feed: NYT, Reddit, BBC, VNExpress, Eurogamer, Substack, and generic RSS/Atom. Built with SwiftUI, supports Vietnamese and English, and runs entirely on-device with no backend of its own.
+A centralized iOS news reader that pulls from multiple sources into one feed: NYT, BBC, VNExpress, Eurogamer, Substack, and generic RSS/Atom. Built with SwiftUI, supports Vietnamese and English, and runs entirely on-device with no backend of its own.
 
 ## Screenshots
 
@@ -14,7 +14,7 @@ A centralized iOS news reader that pulls from multiple sources into one feed: NY
 
 ## Features
 
-- Aggregates NYT, Reddit, BBC, VNExpress, Eurogamer, Substack, and any generic RSS/Atom feed into one timeline
+- Aggregates NYT, BBC, VNExpress, Eurogamer, Substack, and any generic RSS/Atom feed into one timeline
 - Category tabs (Hot News, Sport, World, Finance, and more), with some categories only shown in the language they make sense for
 - Vietnamese and English localization, switchable at runtime from Settings
 - Configurable auto-refresh interval and max articles per category
@@ -102,7 +102,7 @@ var nytSource: Factory<NewsSourceAdapter> {
 }
 ```
 
-Get a free key at [developer.nytimes.com](https://developer.nytimes.com), enable the Top Stories API, and you're good to go. Every other source (Reddit, BBC, VNExpress, Eurogamer, Substack, generic RSS) needs no key at all.
+Get a free key at [developer.nytimes.com](https://developer.nytimes.com), enable the Top Stories API, and you're good to go. Every other source (BBC, VNExpress, Eurogamer, Substack, generic RSS) needs no key at all.
 
 ## Build and test
 

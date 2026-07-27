@@ -26,8 +26,10 @@ enum VNExpressSource {
         // .car, .social, .game intentionally omitted: e.vnexpress.net has no
         // distinct section for any of them (would otherwise collide with
         // .technology's "tech" or .work's "life", producing duplicate
-        // content). RedditSource provides genuinely distinct content for
-        // all three in English mode instead.
+        // content). In English, .car is served by NYT and .game by Eurogamer.
+        // Both are deliberately single source: Reddit used to cover them and
+        // was removed for rejecting every request, and no replacement feed
+        // was worth adding for two niche categories.
     ]
 
     static func make(network: NetworkService, parser: RSSParsing) -> RSSFeedSource {

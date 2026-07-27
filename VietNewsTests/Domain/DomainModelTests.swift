@@ -15,7 +15,7 @@ final class DomainModelTests: XCTestCase {
         let article = Article(
             title: "T", summary: "S", url: URL(string: "https://a.b/c")!,
             imageURL: URL(string: "https://a.b/img.jpg"),
-            source: .reddit, category: .game, publishedAt: Date(timeIntervalSince1970: 1_000)
+            source: .eurogamer, category: .game, publishedAt: Date(timeIntervalSince1970: 1_000)
         )
         let data = try JSONEncoder().encode(article)
         let decoded = try JSONDecoder().decode(Article.self, from: data)
