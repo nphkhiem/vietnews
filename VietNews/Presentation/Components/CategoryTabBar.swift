@@ -28,6 +28,7 @@ struct CategoryTabBar: View {
                                 .foregroundStyle(category == selected ? .white : .primary)
                         }
                         .id(category)
+                        .accessibilityIdentifier("feed.category.\(category.rawValue)")
                     }
                 }
                 .padding(.horizontal)

@@ -3,6 +3,8 @@ import SwiftUI
 struct ArticleRowView: View {
     let article: Article
     let language: Language
+    /// Stable handle for UI tests, so a query never depends on localized copy.
+    let accessibilityIdentifier: String
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -25,6 +27,7 @@ struct ArticleRowView: View {
                 Text(article.title)
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(2)
+                    .accessibilityIdentifier(accessibilityIdentifier)
                 HStack(spacing: 6) {
                     Text(article.source.displayName)
                         .font(.caption2.weight(.medium))

@@ -109,11 +109,11 @@ Get a free key at [developer.nytimes.com](https://developer.nytimes.com), enable
 ```bash
 # Build
 xcodebuild -project VietNews.xcodeproj -scheme VietNews \
-  -destination 'platform=iOS Simulator,name=iPhone 15' build
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
 
 # Unit + UI tests
 xcodebuild -project VietNews.xcodeproj -scheme VietNews \
-  -destination 'platform=iOS Simulator,name=iPhone 15' test
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' test
 ```
 
 `VietNewsTests/` mirrors the production layering (`Domain`, `Data`, `Infrastructure`, `Presentation`, `Integration`), plus `Fixtures/` and `Helpers/`. `VietNewsUITests/` covers smoke and feed flows.
