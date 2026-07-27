@@ -2,6 +2,17 @@ import Foundation
 
 struct NYTTopStoriesDTO: Decodable {
     let results: [NYTArticleDTO]
+
+    /// A section with no stories answers with `results: null` rather than an empty array, and
+    /// treating that as a parse failure reports a working endpoint as broken.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        results = try container.decodeIfPresent([NYTArticleDTO].self, forKey: .results) ?? []
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case results
+    }
 }
 
 struct NYTArticleDTO: Decodable {
