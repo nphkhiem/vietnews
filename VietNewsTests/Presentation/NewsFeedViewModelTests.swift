@@ -9,6 +9,7 @@ final class NewsFeedViewModelTests: XCTestCase {
     private var scheduler: MockRefreshScheduler!
     private var defaults: UserDefaults!
     private let suiteName = "NewsFeedViewModelTests"
+    private let fixedNow = Date(timeIntervalSince1970: 100_000)
 
     override func setUp() {
         super.setUp()
@@ -27,10 +28,19 @@ final class NewsFeedViewModelTests: XCTestCase {
 
     private func makeSUT() -> NewsFeedViewModel {
         NewsFeedViewModel(
-            fetchNews: FetchNewsUseCase(articleRepository: articleRepo, cacheRepository: cacheRepo),
-            refreshNews: RefreshNewsUseCase(articleRepository: articleRepo, cacheRepository: cacheRepo),
+            fetchNews: FetchNewsUseCase(
+                articleRepository: articleRepo,
+                cacheRepository: cacheRepo,
+                now: { self.fixedNow }
+            ),
+            refreshNews: RefreshNewsUseCase(
+                articleRepository: articleRepo,
+                cacheRepository: cacheRepo,
+                now: { self.fixedNow }
+            ),
             preferences: preferences,
-            scheduler: scheduler
+            scheduler: scheduler,
+            now: { self.fixedNow }
         )
     }
 
@@ -77,6 +87,49 @@ final class NewsFeedViewModelTests: XCTestCase {
         await sut.start()
 
         XCTAssertEqual(sut.failedSources, [.bbc, .nyt])
+    }
+
+    func test_givenFreshlyFetchedArticles_whenApplied_thenDoesNotClaimTheDataIsStale() async {
+        articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
+        let sut = makeSUT()
+
+        await sut.start()
+
+        XCTAssertFalse(sut.isShowingStaleData, "seconds old data is not a staleness event")
+    }
+
+    func test_givenCachedArticlesOlderThanTheRefreshInterval_whenApplied_thenReportsStaleData() async {
+        preferences.refreshInterval = 300
+        let fetchedAt = fixedNow.addingTimeInterval(-400)
+        cacheRepo.stored["hotNews_vi"] = CachedArticles(
+            articles: [TestFactory.article()],
+            fetchedAt: fetchedAt,
+            articleLimit: 15
+        )
+        articleRepo.result = .failure(NewsError.allSourcesFailed([.vnexpress]))
+        let sut = makeSUT()
+
+        await sut.start()
+
+        XCTAssertTrue(sut.isShowingStaleData)
+        XCTAssertEqual(sut.lastUpdated, fetchedAt)
+    }
+
+    /// The bug this replaces: a load moments after a successful fetch was served from cache and
+    /// the interface announced the data was stale, over articles that were seconds old.
+    func test_givenCacheHitMomentsAfterAFetch_whenApplied_thenDoesNotReportStaleData() async {
+        preferences.refreshInterval = 300
+        cacheRepo.stored["hotNews_vi"] = CachedArticles(
+            articles: [TestFactory.article()],
+            fetchedAt: fixedNow.addingTimeInterval(-5),
+            articleLimit: 15
+        )
+        let sut = makeSUT()
+
+        await sut.start()
+
+        XCTAssertEqual(articleRepo.fetchCallCount, 0, "expected this to be served from cache")
+        XCTAssertFalse(sut.isShowingStaleData)
     }
 
     func test_givenStartCalledTwice_whenSchedulerAlreadyArmed_thenSchedulerStartsOnce() async {

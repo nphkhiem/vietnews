@@ -15,12 +15,16 @@ final class NewsFeedViewModel: ObservableObject {
     @Published private(set) var language: Language
     @Published private(set) var failedSources: [NewsSource] = []
     @Published private(set) var lastUpdated: Date?
-    @Published private(set) var isShowingCachedData = false
+    /// Whether the articles on screen are old enough to be worth mentioning. Driven by the age
+    /// of the data, not by whether this particular response happened to come from the cache: a
+    /// cache hit moments after a successful fetch is not a staleness event.
+    @Published private(set) var isShowingStaleData = false
 
     private let fetchNews: FetchNewsUseCase
     private let refreshNews: RefreshNewsUseCase
     private let preferences: UserPreferences
     private let scheduler: RefreshScheduling
+    private let now: () -> Date
     private var isSchedulerArmed = false
     private var loadTask: Task<Void, Never>?
     private var loadGeneration = 0
@@ -29,12 +33,14 @@ final class NewsFeedViewModel: ObservableObject {
         fetchNews: FetchNewsUseCase,
         refreshNews: RefreshNewsUseCase,
         preferences: UserPreferences,
-        scheduler: RefreshScheduling
+        scheduler: RefreshScheduling,
+        now: @escaping () -> Date = Date.init
     ) {
         self.fetchNews = fetchNews
         self.refreshNews = refreshNews
         self.preferences = preferences
         self.scheduler = scheduler
+        self.now = now
         self.language = preferences.language
     }
 
@@ -158,8 +164,14 @@ final class NewsFeedViewModel: ObservableObject {
         articles = result.articles
         failedSources = result.failedSources
         lastUpdated = result.lastUpdated
-        isShowingCachedData = result.isFromCache
+        isShowingStaleData = isStale(asOf: result.lastUpdated)
         state = result.articles.isEmpty ? .empty : .loaded
+    }
+
+    /// Older than the reader's own refresh cadence is the threshold, so the notice means "your
+    /// feed missed at least one refresh" rather than an arbitrary duration.
+    private func isStale(asOf lastUpdated: Date) -> Bool {
+        now().timeIntervalSince(lastUpdated) >= preferences.refreshInterval
     }
 
     private func applyFailure(_ error: Error, for category: NewsCategory, language: Language) {
