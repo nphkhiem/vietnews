@@ -24,7 +24,7 @@ final class SettingsViewModelTests: XCTestCase {
     }
 
     private func makeSUT() -> SettingsViewModel {
-        SettingsViewModel(preferences: preferences, scheduler: scheduler, cacheRepository: cacheRepo)
+        SettingsViewModel(preferences: preferences, scheduler: scheduler)
     }
 
     func test_givenStoredPreferences_whenInitializing_thenLoadsInitialValues() {
@@ -87,12 +87,12 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(sut.maxArticles, 50)
     }
 
-    func test_givenChangingMaxArticles_whenSet_thenPersistsAndClearsCache() {
+    func test_givenChangingMaxArticles_whenSet_thenPersistsAndPreservesCache() {
         let sut = makeSUT()
 
         sut.maxArticles = 30
 
         XCTAssertEqual(preferences.maxArticles, 30)
-        XCTAssertEqual(cacheRepo.clearAllCallCount, 1)
+        XCTAssertEqual(cacheRepo.clearAllCallCount, 0, "cached categories must survive a limit change")
     }
 }

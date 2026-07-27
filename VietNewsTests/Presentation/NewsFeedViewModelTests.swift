@@ -29,7 +29,6 @@ final class NewsFeedViewModelTests: XCTestCase {
         NewsFeedViewModel(
             fetchNews: FetchNewsUseCase(articleRepository: articleRepo, cacheRepository: cacheRepo),
             refreshNews: RefreshNewsUseCase(articleRepository: articleRepo, cacheRepository: cacheRepo),
-            cacheRepository: cacheRepo,
             preferences: preferences,
             scheduler: scheduler
         )
@@ -91,7 +90,7 @@ final class NewsFeedViewModelTests: XCTestCase {
         XCTAssertEqual(articleRepo.lastCategory, .finance)
     }
 
-    func test_givenLanguageChange_whenSettingLanguage_thenClearsCachePersistsAndReloads() async {
+    func test_givenLanguageChange_whenSettingLanguage_thenPreservesCachePersistsAndReloads() async {
         articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
         let sut = makeSUT()
         await sut.start()
@@ -100,7 +99,7 @@ final class NewsFeedViewModelTests: XCTestCase {
 
         XCTAssertEqual(sut.language, .english)
         XCTAssertEqual(preferences.language, .english)
-        XCTAssertEqual(cacheRepo.clearAllCallCount, 1)
+        XCTAssertEqual(cacheRepo.clearAllCallCount, 0, "the other language's cache must survive")
         XCTAssertEqual(articleRepo.lastLanguage, .english)
     }
 

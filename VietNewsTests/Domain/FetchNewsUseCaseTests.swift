@@ -12,19 +12,21 @@ final class FetchNewsUseCaseTests: XCTestCase {
         cacheRepo = MockCacheRepository()
     }
 
-    private func makeSUT(ttl: TimeInterval = 300) -> FetchNewsUseCase {
+    private func makeSUT(ttl: TimeInterval = 300, articleLimit: Int = 15) -> FetchNewsUseCase {
         FetchNewsUseCase(
             articleRepository: articleRepo,
             cacheRepository: cacheRepo,
             ttl: ttl,
-            now: { self.fixedNow }
+            now: { self.fixedNow },
+            articleLimit: { articleLimit }
         )
     }
 
     func test_givenFreshCache_whenExecuting_thenReturnsCacheWithoutFetching() async throws {
         let cached = CachedArticles(
             articles: [TestFactory.article()],
-            fetchedAt: fixedNow.addingTimeInterval(-100) // 100s old, TTL 300
+            fetchedAt: fixedNow.addingTimeInterval(-100), // 100s old, TTL 300
+            articleLimit: 15
         )
         cacheRepo.stored["sport_vi"] = cached
 
@@ -39,7 +41,8 @@ final class FetchNewsUseCaseTests: XCTestCase {
     func test_givenStaleCache_whenExecuting_thenFetchesAndSavesToCache() async throws {
         cacheRepo.stored["sport_vi"] = CachedArticles(
             articles: [TestFactory.article(url: "https://old.com/1")],
-            fetchedAt: fixedNow.addingTimeInterval(-400) // stale
+            fetchedAt: fixedNow.addingTimeInterval(-400), // stale
+            articleLimit: 15
         )
         let fresh = [TestFactory.article(url: "https://new.com/1")]
         articleRepo.result = .success(FetchResult(articles: fresh, failedSources: []))
@@ -69,7 +72,8 @@ final class FetchNewsUseCaseTests: XCTestCase {
     func test_givenFetchFailure_whenStaleCacheExists_thenFallsBackToStaleCache() async throws {
         let stale = CachedArticles(
             articles: [TestFactory.article()],
-            fetchedAt: fixedNow.addingTimeInterval(-9_000)
+            fetchedAt: fixedNow.addingTimeInterval(-9_000),
+            articleLimit: 15
         )
         cacheRepo.stored["sport_vi"] = stale
         articleRepo.result = .failure(NewsError.networkUnavailable)
@@ -93,10 +97,52 @@ final class FetchNewsUseCaseTests: XCTestCase {
         }
     }
 
-    func test_givenCacheForOneLanguage_whenExecutingForAnotherLanguage_thenFetchesIndependently() async throws {
+    func test_givenFreshCacheUnderASmallerLimit_whenLimitGrows_thenRefetches() async throws {
+        cacheRepo.stored["sport_vi"] = CachedArticles(
+            articles: [TestFactory.article()],
+            fetchedAt: fixedNow.addingTimeInterval(-10),
+            articleLimit: 15
+        )
+        articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
+
+        _ = try await makeSUT(articleLimit: 50).execute(category: .sport, language: .vietnamese)
+
+        XCTAssertEqual(articleRepo.fetchCallCount, 1)
+        XCTAssertEqual(cacheRepo.stored["sport_vi"]?.articleLimit, 50)
+    }
+
+    func test_givenFreshCacheUnderALargerLimit_whenLimitShrinks_thenServesCache() async throws {
+        cacheRepo.stored["sport_vi"] = CachedArticles(
+            articles: [TestFactory.article()],
+            fetchedAt: fixedNow.addingTimeInterval(-10),
+            articleLimit: 70
+        )
+
+        let result = try await makeSUT(articleLimit: 15).execute(category: .sport, language: .vietnamese)
+
+        XCTAssertEqual(articleRepo.fetchCallCount, 0)
+        XCTAssertTrue(result.isFromCache)
+    }
+
+    /// Entries written before the limit was recorded cannot prove they satisfy any limit, so
+    /// they are refetched once rather than trusted.
+    func test_givenCacheWrittenBeforeLimitsWereRecorded_whenExecuting_thenRefetches() async throws {
         cacheRepo.stored["sport_vi"] = CachedArticles(
             articles: [TestFactory.article()],
             fetchedAt: fixedNow.addingTimeInterval(-10)
+        )
+        articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
+
+        _ = try await makeSUT().execute(category: .sport, language: .vietnamese)
+
+        XCTAssertEqual(articleRepo.fetchCallCount, 1)
+    }
+
+    func test_givenCacheForOneLanguage_whenExecutingForAnotherLanguage_thenFetchesIndependently() async throws {
+        cacheRepo.stored["sport_vi"] = CachedArticles(
+            articles: [TestFactory.article()],
+            fetchedAt: fixedNow.addingTimeInterval(-10),
+            articleLimit: 15
         )
         articleRepo.result = .success(FetchResult(articles: [], failedSources: []))
 

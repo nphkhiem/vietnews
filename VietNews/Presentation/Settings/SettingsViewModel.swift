@@ -9,10 +9,11 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
+    /// Cached entries record the limit they were written under, so raising it invalidates only
+    /// what it actually affects and lowering it invalidates nothing. See `CachedArticles`.
     @Published var maxArticles: Int {
         didSet {
             preferences.maxArticles = maxArticles
-            try? cacheRepository.clearAll()
         }
     }
 
@@ -20,12 +21,10 @@ final class SettingsViewModel: ObservableObject {
 
     private let preferences: UserPreferences
     private let scheduler: RefreshScheduling
-    private let cacheRepository: CacheRepository
 
-    init(preferences: UserPreferences, scheduler: RefreshScheduling, cacheRepository: CacheRepository) {
+    init(preferences: UserPreferences, scheduler: RefreshScheduling) {
         self.preferences = preferences
         self.scheduler = scheduler
-        self.cacheRepository = cacheRepository
         self.refreshInterval = preferences.refreshInterval
         self.maxArticles = preferences.maxArticles
         self.substackFeeds = preferences.substackFeeds
