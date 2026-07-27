@@ -55,12 +55,12 @@ final class FetchNewsUseCaseTests: XCTestCase {
 
     func test_givenNoCache_whenExecuting_thenFetchesAndSaves() async throws {
         let fresh = [TestFactory.article()]
-        articleRepo.result = .success(FetchResult(articles: fresh, failedSources: [.reuters]))
+        articleRepo.result = .success(FetchResult(articles: fresh, failedSources: [.bbc]))
 
         let result = try await makeSUT().execute(category: .world, language: .english)
 
         XCTAssertEqual(result.articles, fresh)
-        XCTAssertEqual(result.failedSources, [.reuters])
+        XCTAssertEqual(result.failedSources, [.bbc])
         XCTAssertEqual(articleRepo.lastCategory, .world)
         XCTAssertEqual(articleRepo.lastLanguage, .english)
         XCTAssertEqual(cacheRepo.saveCallCount, 1)

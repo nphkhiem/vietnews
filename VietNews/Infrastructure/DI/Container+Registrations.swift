@@ -17,8 +17,8 @@ extension Container {
         self { VNExpressSource.make(network: self.networkService(), parser: FeedKitRSSParser(parsingSource: .vnexpress)) }
     }
 
-    var reutersSource: Factory<NewsSourceAdapter> {
-        self { ReutersSource.make(network: self.networkService(), parser: FeedKitRSSParser(parsingSource: .reuters)) }
+    var bbcSource: Factory<NewsSourceAdapter> {
+        self { BBCSource.make(network: self.networkService(), parser: FeedKitRSSParser(parsingSource: .bbc)) }
     }
 
     var substackSource: Factory<NewsSourceAdapter> {
@@ -49,7 +49,7 @@ extension Container {
     var newsSourceAdapters: Factory<[NewsSourceAdapter]> {
         self {
             [
-                self.vnexpressSource(), self.reutersSource(), self.substackSource(),
+                self.vnexpressSource(), self.bbcSource(), self.substackSource(),
                 self.redditSource(), self.nytSource(), self.eurogamerSource()
             ]
         }

@@ -94,7 +94,7 @@ final class SourceHealthChecks: XCTestCase {
         let parser = FeedKitRSSParser()
         return [
             VNExpressSource.make(network: network, parser: FeedKitRSSParser(parsingSource: .vnexpress)),
-            ReutersSource.make(network: network, parser: FeedKitRSSParser(parsingSource: .reuters)),
+            BBCSource.make(network: network, parser: FeedKitRSSParser(parsingSource: .bbc)),
             EurogamerSource.make(network: network, parser: FeedKitRSSParser(parsingSource: .eurogamer)),
             RedditSource(network: network),
             NYTSource(network: network, apiKey: nytAPIKey()),

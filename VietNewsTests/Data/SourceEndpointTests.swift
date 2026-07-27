@@ -17,7 +17,7 @@ final class SourceEndpointTests: XCTestCase {
     private func allAdapters(nytKey: String = "test-key") -> [NewsSourceAdapter] {
         [
             VNExpressSource.make(network: network, parser: parser),
-            ReutersSource.make(network: network, parser: parser),
+            BBCSource.make(network: network, parser: parser),
             EurogamerSource.make(network: network, parser: parser),
             RedditSource(network: network),
             NYTSource(network: network, apiKey: nytKey),

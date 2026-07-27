@@ -61,18 +61,18 @@ final class RemoteArticleRepositoryTests: XCTestCase {
 
     func test_givenOneSourceFails_whenFetching_thenReportsFailedSourceAndReturnsRest() async throws {
         let ok = FakeAdapter(source: .vnexpress, result: .success(articles(3, source: .vnexpress, startingAt: 1_000)))
-        let bad = FakeAdapter(source: .reuters, result: .failure(NewsError.networkUnavailable))
+        let bad = FakeAdapter(source: .bbc, result: .failure(NewsError.networkUnavailable))
         let sut = RemoteArticleRepository(adapters: [ok, bad])
 
         let result = try await sut.fetchArticles(category: .sport, language: .english)
 
         XCTAssertEqual(result.articles.count, 3)
-        XCTAssertEqual(result.failedSources, [.reuters])
+        XCTAssertEqual(result.failedSources, [.bbc])
     }
 
     func test_givenAllSourcesFail_whenFetching_thenThrowsNetworkUnavailable() async {
         let bad1 = FakeAdapter(source: .vnexpress, result: .failure(NewsError.networkUnavailable))
-        let bad2 = FakeAdapter(source: .reuters, result: .failure(NewsError.networkUnavailable))
+        let bad2 = FakeAdapter(source: .bbc, result: .failure(NewsError.networkUnavailable))
         let sut = RemoteArticleRepository(adapters: [bad1, bad2])
 
         do {
@@ -108,8 +108,8 @@ final class RemoteArticleRepositoryTests: XCTestCase {
 
     func test_givenSlowSource_whenExceedingTimeout_thenReportedAsFailedSource() async throws {
         let slow = FakeAdapter(
-            source: .reuters,
-            result: .success(articles(5, source: .reuters, startingAt: 9_000)),
+            source: .bbc,
+            result: .success(articles(5, source: .bbc, startingAt: 9_000)),
             delay: 2.0
         )
         let fast = FakeAdapter(source: .reddit, result: .success(articles(2, source: .reddit, startingAt: 1_000)))
@@ -118,7 +118,7 @@ final class RemoteArticleRepositoryTests: XCTestCase {
         let result = try await sut.fetchArticles(category: .sport, language: .english)
 
         XCTAssertEqual(result.articles.count, 2)
-        XCTAssertEqual(result.failedSources, [.reuters])
+        XCTAssertEqual(result.failedSources, [.bbc])
     }
 
     func test_givenCustomMaxArticles_whenFetching_thenCapsAtConfiguredValue() async throws {

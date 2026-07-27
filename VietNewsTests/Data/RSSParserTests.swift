@@ -35,9 +35,9 @@ final class RSSParserTests: XCTestCase {
     }
 
     func test_givenMalformedData_whenParsing_thenThrowsParsingFailed() {
-        let sut = FeedKitRSSParser(parsingSource: .reuters)
+        let sut = FeedKitRSSParser(parsingSource: .bbc)
         XCTAssertThrowsError(try sut.parse(Data("not xml at all".utf8))) { error in
-            XCTAssertEqual(error as? NewsError, .parsingFailed(.reuters))
+            XCTAssertEqual(error as? NewsError, .parsingFailed(.bbc))
         }
     }
 

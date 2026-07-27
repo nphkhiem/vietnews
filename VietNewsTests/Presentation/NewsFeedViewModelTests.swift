@@ -71,13 +71,13 @@ final class NewsFeedViewModelTests: XCTestCase {
 
     func test_givenPartialSourceFailure_whenStarting_thenExposesFailedSources() async {
         articleRepo.result = .success(
-            FetchResult(articles: [TestFactory.article()], failedSources: [.reuters, .nyt])
+            FetchResult(articles: [TestFactory.article()], failedSources: [.bbc, .nyt])
         )
         let sut = makeSUT()
 
         await sut.start()
 
-        XCTAssertEqual(sut.failedSources, [.reuters, .nyt])
+        XCTAssertEqual(sut.failedSources, [.bbc, .nyt])
     }
 
     func test_givenNewCategory_whenSelected_thenLoadsArticlesForThatCategory() async {
