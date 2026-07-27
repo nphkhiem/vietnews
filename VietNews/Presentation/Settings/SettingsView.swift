@@ -18,6 +18,7 @@ struct SettingsView: View {
                         Text("English").tag(Language.english)
                     }
                     .pickerStyle(.segmented)
+                    .accessibilityIdentifier("settings.language.picker")
                 }
 
                 Section(isVietnamese ? "Tự động làm mới" : "Auto-refresh") {

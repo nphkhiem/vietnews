@@ -68,9 +68,13 @@ struct NewsFeedView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                ForEach(viewModel.articles) { article in
-                    ArticleRowView(article: article, language: viewModel.language)
-                        .onTapGesture { presentedArticle = article }
+                ForEach(Array(viewModel.articles.enumerated()), id: \.element.id) { index, article in
+                    ArticleRowView(
+                        article: article,
+                        language: viewModel.language,
+                        accessibilityIdentifier: "feed.row.\(article.category.rawValue).\(index)"
+                    )
+                    .onTapGesture { presentedArticle = article }
                 }
             }
             .padding(.vertical, 8)
