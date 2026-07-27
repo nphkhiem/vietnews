@@ -63,7 +63,7 @@ final class NewsPipelineIntegrationTests: XCTestCase {
         XCTAssertEqual(second.articles.count, 2)
     }
 
-    func test_givenHTTPFailureWithNoPriorCache_whenFetching_thenPropagatesNetworkUnavailable() async throws {
+    func test_givenHTTPFailureWithNoPriorCache_whenFetching_thenPropagatesTheFailedSources() async throws {
         MockURLProtocol.handler = { request in
             let response = HTTPURLResponse(url: request.url!, statusCode: 500, httpVersion: nil, headerFields: nil)!
             return (response, Data())
@@ -74,7 +74,7 @@ final class NewsPipelineIntegrationTests: XCTestCase {
             _ = try await useCase.execute(category: .sport, language: .vietnamese)
             XCTFail("Expected throw")
         } catch {
-            XCTAssertEqual(error as? NewsError, .networkUnavailable)
+            XCTAssertEqual(error as? NewsError, .allSourcesFailed([.vnexpress]))
         }
     }
 }

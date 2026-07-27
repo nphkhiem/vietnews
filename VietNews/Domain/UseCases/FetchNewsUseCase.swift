@@ -28,6 +28,13 @@ struct FetchNewsUseCase {
         self.articleLimit = articleLimit
     }
 
+    /// Only `allSourcesFailed` knows which sources were actually attempted. Any other failure
+    /// names none, rather than implicating sources that were never part of the request.
+    private static func failedSources(from error: Error) -> [NewsSource] {
+        guard case .allSourcesFailed(let sources) = error as? NewsError else { return [] }
+        return sources
+    }
+
     func execute(category: NewsCategory, language: Language) async throws -> NewsFeedResult {
         let cached = cacheRepository.load(category: category, language: language)
         let limit = articleLimit()
@@ -35,7 +42,7 @@ struct FetchNewsUseCase {
         if let cached, now().timeIntervalSince(cached.fetchedAt) < ttl, cached.satisfies(articleLimit: limit) {
             return NewsFeedResult(
                 articles: cached.articles,
-                failedSources: [],
+                failedSources: cached.failedSources,
                 lastUpdated: cached.fetchedAt,
                 isFromCache: true
             )
@@ -45,7 +52,12 @@ struct FetchNewsUseCase {
             let fetched = try await articleRepository.fetchArticles(category: category, language: language)
             let fetchedAt = now()
             try? cacheRepository.save(
-                CachedArticles(articles: fetched.articles, fetchedAt: fetchedAt, articleLimit: limit),
+                CachedArticles(
+                    articles: fetched.articles,
+                    fetchedAt: fetchedAt,
+                    articleLimit: limit,
+                    failedSources: fetched.failedSources
+                ),
                 category: category,
                 language: language
             )
@@ -59,7 +71,7 @@ struct FetchNewsUseCase {
             if let cached {
                 return NewsFeedResult(
                     articles: cached.articles,
-                    failedSources: NewsSource.allCases,
+                    failedSources: Self.failedSources(from: error),
                     lastUpdated: cached.fetchedAt,
                     isFromCache: true
                 )

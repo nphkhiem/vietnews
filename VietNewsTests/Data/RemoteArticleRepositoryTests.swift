@@ -70,7 +70,7 @@ final class RemoteArticleRepositoryTests: XCTestCase {
         XCTAssertEqual(result.failedSources, [.bbc])
     }
 
-    func test_givenAllSourcesFail_whenFetching_thenThrowsNetworkUnavailable() async {
+    func test_givenAllSourcesFail_whenFetching_thenThrowsNamingThoseSources() async {
         let bad1 = FakeAdapter(source: .vnexpress, result: .failure(NewsError.networkUnavailable))
         let bad2 = FakeAdapter(source: .bbc, result: .failure(NewsError.networkUnavailable))
         let sut = RemoteArticleRepository(adapters: [bad1, bad2])
@@ -79,7 +79,28 @@ final class RemoteArticleRepositoryTests: XCTestCase {
             _ = try await sut.fetchArticles(category: .sport, language: .english)
             XCTFail("Expected throw")
         } catch {
-            XCTAssertEqual(error as? NewsError, .networkUnavailable)
+            guard case .allSourcesFailed(let sources) = error as? NewsError else {
+                return XCTFail("Expected allSourcesFailed, got \(error)")
+            }
+            XCTAssertEqual(Set(sources), [.vnexpress, .bbc])
+        }
+    }
+
+    /// An adapter that does not support the request is not a failure, so it must never appear in
+    /// the reported list even when every supported adapter fails.
+    func test_givenAllSupportedSourcesFail_whenFetching_thenUnsupportedSourcesAreNotNamed() async {
+        let bad = FakeAdapter(source: .vnexpress, result: .failure(NewsError.networkUnavailable))
+        let unsupported = FakeAdapter(source: .nyt, supported: false)
+        let sut = RemoteArticleRepository(adapters: [bad, unsupported])
+
+        do {
+            _ = try await sut.fetchArticles(category: .sport, language: .english)
+            XCTFail("Expected throw")
+        } catch {
+            guard case .allSourcesFailed(let sources) = error as? NewsError else {
+                return XCTFail("Expected allSourcesFailed, got \(error)")
+            }
+            XCTAssertEqual(sources, [.vnexpress])
         }
     }
 

@@ -148,6 +148,8 @@ final class SourceHealthChecks: XCTestCase {
             case .parsingFailed(let source): return "parsing failed for \(source.rawValue)"
             case .sourceTimeout(let source): return "timed out for \(source.rawValue)"
             case .networkUnavailable: return "network unavailable"
+            case .allSourcesFailed(let sources):
+                return "all sources failed: " + sources.map(\.rawValue).joined(separator: ", ")
             case .cacheFailed: return "cache failed"
             }
         }
