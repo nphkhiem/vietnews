@@ -5,7 +5,7 @@ extension Container {
     var networkService: Factory<NetworkService> {
         self {
             URLCache.shared = URLCache(memoryCapacity: 10 * 1024 * 1024, diskCapacity: 50 * 1024 * 1024)
-            return URLSessionNetworkService()
+            return RetryingNetworkService(wrapping: URLSessionNetworkService())
         }.singleton
     }
 

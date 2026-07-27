@@ -1,3 +1,5 @@
+import Foundation
+
 /// Why every source applicable to a request failed, in terms the interface can turn into copy
 /// that suggests what the reader might do next.
 enum SourceFailureCause: Equatable, Hashable {
@@ -5,6 +7,8 @@ enum SourceFailureCause: Equatable, Hashable {
     case timedOut
     /// Sources answered, but refused the request.
     case rejected
+    /// Sources are rate limiting us. Unlike a refusal, this is expected to pass on its own.
+    case rateLimited
     /// Sources answered, but the response could not be read.
     case unparseable
     /// The request never reached the sources.
@@ -19,6 +23,8 @@ enum NewsError: Error, Equatable {
     /// reader is never told a source failed that was never attempted, plus why they failed.
     case allSourcesFailed([NewsSource], cause: SourceFailureCause)
     case invalidResponse(statusCode: Int)
+    /// The source is rate limiting us. Carries the delay the server asked for, when it stated one.
+    case rateLimited(retryAfter: TimeInterval?)
     case sourceTimeout(NewsSource)
     case parsingFailed(NewsSource)
     case cacheFailed

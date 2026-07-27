@@ -79,6 +79,7 @@ final class RemoteArticleRepository: ArticleRepository {
             switch newsError {
             case .sourceTimeout: return .timedOut
             case .invalidResponse: return .rejected
+            case .rateLimited: return .rateLimited
             case .parsingFailed: return .unparseable
             case .networkUnavailable: return .unreachable
             case .allSourcesFailed(_, let cause): return cause

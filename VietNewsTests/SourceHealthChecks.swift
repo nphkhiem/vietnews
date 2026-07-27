@@ -145,6 +145,9 @@ final class SourceHealthChecks: XCTestCase {
         if let newsError = error as? NewsError {
             switch newsError {
             case .invalidResponse(let statusCode): return "HTTP \(statusCode)"
+            case .rateLimited(let retryAfter):
+                guard let retryAfter else { return "rate limited" }
+                return "rate limited, retry after \(Int(retryAfter))s"
             case .parsingFailed(let source): return "parsing failed for \(source.rawValue)"
             case .sourceTimeout(let source): return "timed out for \(source.rawValue)"
             case .networkUnavailable: return "network unavailable"
