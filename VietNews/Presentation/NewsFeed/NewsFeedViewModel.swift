@@ -212,6 +212,10 @@ final class NewsFeedViewModel: ObservableObject {
             return isVietnamese
                 ? "Nguồn tin từ chối yêu cầu. Có thể khả dụng lại sau."
                 : "The sources refused the request. They may be available again later."
+        case .rateLimited:
+            return isVietnamese
+                ? "Nguồn tin tạm thời giới hạn truy cập. Thử lại sau ít phút."
+                : "The sources are temporarily limiting requests. Try again in a few minutes."
         case .unparseable:
             return isVietnamese
                 ? "Không đọc được dữ liệu từ nguồn tin."
@@ -232,6 +236,7 @@ final class NewsFeedViewModel: ObservableObject {
         case .allSourcesFailed(_, let cause): return cause
         case .sourceTimeout: return .timedOut
         case .invalidResponse: return .rejected
+        case .rateLimited: return .rateLimited
         case .parsingFailed: return .unparseable
         case .networkUnavailable: return .unreachable
         case .cacheFailed, .none: return nil
