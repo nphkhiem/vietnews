@@ -19,11 +19,15 @@ struct RSSFeedSource: NewsSourceAdapter {
     }
 
     func supports(category: NewsCategory, language: Language) -> Bool {
-        feedURL(category, language) != nil
+        !endpoints(category: category, language: language).isEmpty
+    }
+
+    func endpoints(category: NewsCategory, language: Language) -> [URL] {
+        [feedURL(category, language)].compactMap { $0 }
     }
 
     func fetch(category: NewsCategory, language: Language) async throws -> [Article] {
-        guard let url = feedURL(category, language) else { return [] }
+        guard let url = endpoints(category: category, language: language).first else { return [] }
         let data = try await network.data(from: url)
         return try parser.parse(data).map { item in
             Article(

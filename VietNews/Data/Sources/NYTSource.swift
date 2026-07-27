@@ -22,13 +22,20 @@ struct NYTSource: NewsSourceAdapter {
     }
 
     func supports(category: NewsCategory, language: Language) -> Bool {
-        !apiKey.isEmpty && language == .english && Self.sections[category] != nil
+        !endpoints(category: category, language: language).isEmpty
+    }
+
+    func endpoints(category: NewsCategory, language: Language) -> [URL] {
+        guard !apiKey.isEmpty,
+              language == .english,
+              let section = Self.sections[category],
+              let url = URL(string: "https://api.nytimes.com/svc/topstories/v2/\(section).json?api-key=\(apiKey)")
+        else { return [] }
+        return [url]
     }
 
     func fetch(category: NewsCategory, language: Language) async throws -> [Article] {
-        guard let section = Self.sections[category],
-              let url = URL(string: "https://api.nytimes.com/svc/topstories/v2/\(section).json?api-key=\(apiKey)")
-        else { return [] }
+        guard let url = endpoints(category: category, language: language).first else { return [] }
 
         let data = try await network.data(from: url)
         let response: NYTTopStoriesDTO

@@ -21,6 +21,10 @@ private final class FakeAdapter: NewsSourceAdapter {
 
     func supports(category: NewsCategory, language: Language) -> Bool { supported }
 
+    func endpoints(category: NewsCategory, language: Language) -> [URL] {
+        supported ? [URL(string: "https://example.com/\(source.rawValue)")!] : []
+    }
+
     func fetch(category: NewsCategory, language: Language) async throws -> [Article] {
         if delay > 0 {
             try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))

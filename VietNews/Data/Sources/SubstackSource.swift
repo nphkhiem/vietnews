@@ -22,11 +22,15 @@ struct SubstackSource: NewsSourceAdapter {
     }
 
     func supports(category: NewsCategory, language: Language) -> Bool {
-        feeds().contains { $0.category == category }
+        !endpoints(category: category, language: language).isEmpty
+    }
+
+    func endpoints(category: NewsCategory, language: Language) -> [URL] {
+        feeds().filter { $0.category == category }.map(\.url)
     }
 
     func fetch(category: NewsCategory, language: Language) async throws -> [Article] {
-        let urls = feeds().filter { $0.category == category }.map(\.url)
+        let urls = endpoints(category: category, language: language)
         return await withTaskGroup(of: [Article].self) { group in
             for url in urls {
                 group.addTask {
