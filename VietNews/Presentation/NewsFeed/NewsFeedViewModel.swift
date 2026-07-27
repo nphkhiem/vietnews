@@ -21,6 +21,9 @@ final class NewsFeedViewModel: ObservableObject {
     private let refreshNews: RefreshNewsUseCase
     private let preferences: UserPreferences
     private let scheduler: RefreshScheduling
+    private var isSchedulerArmed = false
+    private var loadTask: Task<Void, Never>?
+    private var loadGeneration = 0
 
     init(
         fetchNews: FetchNewsUseCase,
@@ -35,23 +38,39 @@ final class NewsFeedViewModel: ObservableObject {
         self.language = preferences.language
     }
 
+    /// Arms the auto-refresh timer and performs the initial load. The view calls this both when
+    /// the feed appears and when the scene becomes active, which happens within moments of each
+    /// other at launch, so both the arming and the load are deliberately idempotent.
     func start() async {
-        scheduler.onTick = { [weak self] in
-            guard let self else { return }
-            Task(priority: .background) {
-                await self.load()
-                await self.prefetchAdjacentCategories()
-            }
-        }
-        scheduler.start(interval: preferences.refreshInterval)
+        armSchedulerIfNeeded()
         await load()
     }
 
     func stop() {
         scheduler.stop()
+        isSchedulerArmed = false
     }
 
+    /// Coalesces concurrent loads. A timer tick, a foreground transition, and the initial appear
+    /// can all arrive at once, and each one starting its own fan-out across every source would
+    /// multiply network traffic and let a later response overwrite an earlier one.
     func load() async {
+        if let inFlight = loadTask {
+            await inFlight.value
+            return
+        }
+
+        loadGeneration += 1
+        let generation = loadGeneration
+        let task = Task { await self.performLoad() }
+        loadTask = task
+        await task.value
+        if generation == loadGeneration {
+            loadTask = nil
+        }
+    }
+
+    private func performLoad() async {
         if articles.isEmpty {
             state = .loading
         }
@@ -63,6 +82,27 @@ final class NewsFeedViewModel: ObservableObject {
         } catch {
             applyFailure(error, for: requestedCategory, language: requestedLanguage)
         }
+    }
+
+    /// Used when the selection changes: an in-flight load is for the previous category or
+    /// language, so joining it would be wrong. Discard it and start over.
+    private func reload() async {
+        loadTask?.cancel()
+        loadTask = nil
+        await load()
+    }
+
+    private func armSchedulerIfNeeded() {
+        guard !isSchedulerArmed else { return }
+        isSchedulerArmed = true
+        scheduler.onTick = { [weak self] in
+            guard let self else { return }
+            Task(priority: .background) {
+                await self.load()
+                await self.prefetchAdjacentCategories()
+            }
+        }
+        scheduler.start(interval: preferences.refreshInterval)
     }
 
     func refresh() async {
@@ -80,7 +120,7 @@ final class NewsFeedViewModel: ObservableObject {
         guard category != selectedCategory else { return }
         selectedCategory = category
         articles = []
-        await load()
+        await reload()
     }
 
     func setLanguage(_ newLanguage: Language) async {
@@ -91,7 +131,7 @@ final class NewsFeedViewModel: ObservableObject {
             selectedCategory = .hotNews
         }
         articles = []
-        await load()
+        await reload()
     }
 
     func prefetchAdjacentCategories() async {

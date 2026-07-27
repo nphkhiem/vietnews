@@ -79,6 +79,68 @@ final class NewsFeedViewModelTests: XCTestCase {
         XCTAssertEqual(sut.failedSources, [.bbc, .nyt])
     }
 
+    func test_givenStartCalledTwice_whenSchedulerAlreadyArmed_thenSchedulerStartsOnce() async {
+        articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
+        let sut = makeSUT()
+
+        await sut.start()
+        await sut.start()
+
+        XCTAssertEqual(scheduler.startCallCount, 1, "foregrounding must not re-arm the timer")
+    }
+
+    func test_givenStoppedFeed_whenStartingAgain_thenSchedulerIsArmedAgain() async {
+        articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
+        let sut = makeSUT()
+        await sut.start()
+
+        sut.stop()
+        await sut.start()
+
+        XCTAssertEqual(scheduler.startCallCount, 2)
+    }
+
+    /// The view starts the feed both when it appears and when the scene becomes active, which at
+    /// launch happens within moments. Without coalescing that is two full fan-outs across every
+    /// source, and the second one used to overwrite the first with a cache-shaped result.
+    func test_givenTwoConcurrentLoads_whenOneIsAlreadyInFlight_thenOnlyOneFetchHappens() async {
+        articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
+        articleRepo.gateFetch(for: .hotNews)
+        let sut = makeSUT()
+
+        async let firstStart: Void = sut.start()
+        while !articleRepo.didEnterGatedFetch {
+            await Task.yield()
+        }
+        async let secondStart: Void = sut.start()
+        for _ in 0..<10 {
+            await Task.yield()
+        }
+        articleRepo.releaseGatedFetch()
+        _ = await (firstStart, secondStart)
+
+        XCTAssertEqual(articleRepo.fetchCallCount, 1)
+    }
+
+    func test_givenLoadInFlight_whenTimerTicks_thenTickJoinsInsteadOfFetchingAgain() async {
+        articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
+        articleRepo.gateFetch(for: .hotNews)
+        let sut = makeSUT()
+
+        async let running: Void = sut.start()
+        while !articleRepo.didEnterGatedFetch {
+            await Task.yield()
+        }
+        async let tick: Void = sut.load()
+        for _ in 0..<10 {
+            await Task.yield()
+        }
+        articleRepo.releaseGatedFetch()
+        _ = await (running, tick)
+
+        XCTAssertEqual(articleRepo.fetchCallCount, 1)
+    }
+
     func test_givenNewCategory_whenSelected_thenLoadsArticlesForThatCategory() async {
         articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
         let sut = makeSUT()
