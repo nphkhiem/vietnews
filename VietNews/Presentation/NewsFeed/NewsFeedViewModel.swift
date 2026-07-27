@@ -19,20 +19,17 @@ final class NewsFeedViewModel: ObservableObject {
 
     private let fetchNews: FetchNewsUseCase
     private let refreshNews: RefreshNewsUseCase
-    private let cacheRepository: CacheRepository
     private let preferences: UserPreferences
     private let scheduler: RefreshScheduling
 
     init(
         fetchNews: FetchNewsUseCase,
         refreshNews: RefreshNewsUseCase,
-        cacheRepository: CacheRepository,
         preferences: UserPreferences,
         scheduler: RefreshScheduling
     ) {
         self.fetchNews = fetchNews
         self.refreshNews = refreshNews
-        self.cacheRepository = cacheRepository
         self.preferences = preferences
         self.scheduler = scheduler
         self.language = preferences.language
@@ -93,7 +90,6 @@ final class NewsFeedViewModel: ObservableObject {
         if !selectedCategory.isAvailable(in: newLanguage) {
             selectedCategory = .hotNews
         }
-        try? cacheRepository.clearAll()
         articles = []
         await load()
     }

@@ -73,11 +73,23 @@ extension Container {
     }
 
     var fetchNewsUseCase: Factory<FetchNewsUseCase> {
-        self { FetchNewsUseCase(articleRepository: self.articleRepository(), cacheRepository: self.cacheRepository()) }
+        self {
+            FetchNewsUseCase(
+                articleRepository: self.articleRepository(),
+                cacheRepository: self.cacheRepository(),
+                articleLimit: { self.userPreferences().maxArticles }
+            )
+        }
     }
 
     var refreshNewsUseCase: Factory<RefreshNewsUseCase> {
-        self { RefreshNewsUseCase(articleRepository: self.articleRepository(), cacheRepository: self.cacheRepository()) }
+        self {
+            RefreshNewsUseCase(
+                articleRepository: self.articleRepository(),
+                cacheRepository: self.cacheRepository(),
+                articleLimit: { self.userPreferences().maxArticles }
+            )
+        }
     }
 
     @MainActor
@@ -86,7 +98,6 @@ extension Container {
             NewsFeedViewModel(
                 fetchNews: self.fetchNewsUseCase(),
                 refreshNews: self.refreshNewsUseCase(),
-                cacheRepository: self.cacheRepository(),
                 preferences: self.userPreferences(),
                 scheduler: self.refreshScheduler()
             )
@@ -98,8 +109,7 @@ extension Container {
         self {
             SettingsViewModel(
                 preferences: self.userPreferences(),
-                scheduler: self.refreshScheduler(),
-                cacheRepository: self.cacheRepository()
+                scheduler: self.refreshScheduler()
             )
         }.singleton
     }

@@ -4,22 +4,25 @@ struct RefreshNewsUseCase {
     private let articleRepository: ArticleRepository
     private let cacheRepository: CacheRepository
     private let now: () -> Date
+    private let articleLimit: () -> Int
 
     init(
         articleRepository: ArticleRepository,
         cacheRepository: CacheRepository,
-        now: @escaping () -> Date = Date.init
+        now: @escaping () -> Date = Date.init,
+        articleLimit: @escaping () -> Int = { 15 }
     ) {
         self.articleRepository = articleRepository
         self.cacheRepository = cacheRepository
         self.now = now
+        self.articleLimit = articleLimit
     }
 
     func execute(category: NewsCategory, language: Language) async throws -> NewsFeedResult {
         let fetched = try await articleRepository.fetchArticles(category: category, language: language)
         let fetchedAt = now()
         try? cacheRepository.save(
-            CachedArticles(articles: fetched.articles, fetchedAt: fetchedAt),
+            CachedArticles(articles: fetched.articles, fetchedAt: fetchedAt, articleLimit: articleLimit()),
             category: category,
             language: language
         )
