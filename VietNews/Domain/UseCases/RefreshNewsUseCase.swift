@@ -22,7 +22,12 @@ struct RefreshNewsUseCase {
         let fetched = try await articleRepository.fetchArticles(category: category, language: language)
         let fetchedAt = now()
         try? cacheRepository.save(
-            CachedArticles(articles: fetched.articles, fetchedAt: fetchedAt, articleLimit: articleLimit()),
+            CachedArticles(
+                articles: fetched.articles,
+                fetchedAt: fetchedAt,
+                articleLimit: articleLimit(),
+                failedSources: fetched.failedSources
+            ),
             category: category,
             language: language
         )

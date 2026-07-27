@@ -8,11 +8,32 @@ struct CachedArticles: Codable, Equatable {
     /// because a prefix of the entry is still correct. Optional so entries written before this
     /// field existed still decode, and those are treated as unable to satisfy any limit.
     let articleLimit: Int?
+    /// Sources that failed when this entry was written. Serving the entry later must report the
+    /// same failures, otherwise a cache hit silently claims everything worked.
+    let failedSources: [NewsSource]
 
-    init(articles: [Article], fetchedAt: Date, articleLimit: Int? = nil) {
+    init(
+        articles: [Article],
+        fetchedAt: Date,
+        articleLimit: Int? = nil,
+        failedSources: [NewsSource] = []
+    ) {
         self.articles = articles
         self.fetchedAt = fetchedAt
         self.articleLimit = articleLimit
+        self.failedSources = failedSources
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case articles, fetchedAt, articleLimit, failedSources
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        articles = try container.decode([Article].self, forKey: .articles)
+        fetchedAt = try container.decode(Date.self, forKey: .fetchedAt)
+        articleLimit = try container.decodeIfPresent(Int.self, forKey: .articleLimit)
+        failedSources = try container.decodeIfPresent([NewsSource].self, forKey: .failedSources) ?? []
     }
 
     func satisfies(articleLimit limit: Int) -> Bool {

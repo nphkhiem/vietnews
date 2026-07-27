@@ -76,14 +76,56 @@ final class FetchNewsUseCaseTests: XCTestCase {
             articleLimit: 15
         )
         cacheRepo.stored["sport_vi"] = stale
-        articleRepo.result = .failure(NewsError.networkUnavailable)
+        articleRepo.result = .failure(NewsError.allSourcesFailed([.vnexpress, .substack]))
 
         let result = try await makeSUT().execute(category: .sport, language: .vietnamese)
 
         XCTAssertEqual(result.articles, stale.articles)
         XCTAssertTrue(result.isFromCache)
         XCTAssertEqual(result.lastUpdated, stale.fetchedAt)
-        XCTAssertEqual(result.failedSources, NewsSource.allCases)
+        XCTAssertEqual(
+            result.failedSources,
+            [.vnexpress, .substack],
+            "only the sources actually attempted may be named"
+        )
+    }
+
+    func test_givenFetchFailureThatNamesNoSources_whenStaleCacheExists_thenNamesNoFailedSources() async throws {
+        cacheRepo.stored["sport_vi"] = CachedArticles(
+            articles: [TestFactory.article()],
+            fetchedAt: fixedNow.addingTimeInterval(-9_000),
+            articleLimit: 15
+        )
+        articleRepo.result = .failure(NewsError.cacheFailed)
+
+        let result = try await makeSUT().execute(category: .sport, language: .vietnamese)
+
+        XCTAssertTrue(result.failedSources.isEmpty)
+    }
+
+    func test_givenCacheRecordingFailedSources_whenServedFromCache_thenReplaysThoseFailures() async throws {
+        cacheRepo.stored["sport_vi"] = CachedArticles(
+            articles: [TestFactory.article()],
+            fetchedAt: fixedNow.addingTimeInterval(-10),
+            articleLimit: 15,
+            failedSources: [.nyt]
+        )
+
+        let result = try await makeSUT().execute(category: .sport, language: .vietnamese)
+
+        XCTAssertEqual(articleRepo.fetchCallCount, 0)
+        XCTAssertTrue(result.isFromCache)
+        XCTAssertEqual(result.failedSources, [.nyt], "a cache hit must not claim everything worked")
+    }
+
+    func test_givenFetchWithPartialFailure_whenSaving_thenRecordsFailuresInCache() async throws {
+        articleRepo.result = .success(
+            FetchResult(articles: [TestFactory.article()], failedSources: [.nyt, .bbc])
+        )
+
+        _ = try await makeSUT().execute(category: .world, language: .english)
+
+        XCTAssertEqual(cacheRepo.stored["world_en"]?.failedSources, [.nyt, .bbc])
     }
 
     func test_givenFetchFailure_whenNoCacheExists_thenRethrowsError() async {

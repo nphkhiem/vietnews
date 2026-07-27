@@ -40,7 +40,7 @@ final class RemoteArticleRepository: ArticleRepository {
 
         let failedSources = outcomes.filter { $0.1 == nil }.map(\.0)
         guard failedSources.count < applicable.count else {
-            throw NewsError.networkUnavailable
+            throw NewsError.allSourcesFailed(failedSources)
         }
 
         let merged = outcomes
