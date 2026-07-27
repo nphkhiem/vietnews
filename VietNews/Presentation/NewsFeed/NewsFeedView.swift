@@ -63,7 +63,7 @@ struct NewsFeedView: View {
                 if !viewModel.failedSources.isEmpty {
                     unavailableBanner
                 }
-                if viewModel.isShowingCachedData, let updated = viewModel.lastUpdated {
+                if viewModel.isShowingStaleData, let updated = viewModel.lastUpdated {
                     Text(staleLabel(updated))
                         .font(.caption)
                         .foregroundStyle(.secondary)
