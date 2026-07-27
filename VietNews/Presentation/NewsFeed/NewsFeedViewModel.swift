@@ -19,12 +19,16 @@ final class NewsFeedViewModel: ObservableObject {
     /// of the data, not by whether this particular response happened to come from the cache: a
     /// cache hit moments after a successful fetch is not a staleness event.
     @Published private(set) var isShowingStaleData = false
+    /// A failure that happened while articles were already on screen. Previously such a failure
+    /// produced no feedback at all: the reader pulled to refresh and nothing happened.
+    @Published private(set) var refreshFailureMessage: String?
 
     private let fetchNews: FetchNewsUseCase
     private let refreshNews: RefreshNewsUseCase
     private let preferences: UserPreferences
     private let scheduler: RefreshScheduling
     private let now: () -> Date
+    private let isOnline: () -> Bool
     private var isSchedulerArmed = false
     private var loadTask: Task<Void, Never>?
     private var loadGeneration = 0
@@ -34,13 +38,15 @@ final class NewsFeedViewModel: ObservableObject {
         refreshNews: RefreshNewsUseCase,
         preferences: UserPreferences,
         scheduler: RefreshScheduling,
-        now: @escaping () -> Date = Date.init
+        now: @escaping () -> Date = Date.init,
+        isOnline: @escaping () -> Bool = { true }
     ) {
         self.fetchNews = fetchNews
         self.refreshNews = refreshNews
         self.preferences = preferences
         self.scheduler = scheduler
         self.now = now
+        self.isOnline = isOnline
         self.language = preferences.language
     }
 
@@ -163,6 +169,7 @@ final class NewsFeedViewModel: ObservableObject {
         guard !isStale(category, language) else { return }
         articles = result.articles
         failedSources = result.failedSources
+        refreshFailureMessage = nil
         lastUpdated = result.lastUpdated
         isShowingStaleData = isStale(asOf: result.lastUpdated)
         state = result.articles.isEmpty ? .empty : .loaded
@@ -176,15 +183,58 @@ final class NewsFeedViewModel: ObservableObject {
 
     private func applyFailure(_ error: Error, for category: NewsCategory, language: Language) {
         guard !isStale(category, language) else { return }
+        let message = errorMessage(for: error)
         if articles.isEmpty {
-            state = .failed(errorMessage(for: error))
+            state = .failed(message)
+        } else {
+            refreshFailureMessage = message
         }
     }
 
+    /// Connectivity is checked before blaming the network, because "you are offline" is only
+    /// useful when it is true. A device that is online and sources that are all refusing are two
+    /// different problems with two different next steps.
     private func errorMessage(for error: Error) -> String {
-        switch language {
-        case .vietnamese: return "Không thể tải tin tức. Vui lòng thử lại."
-        case .english: return "Could not load news. Please try again."
+        let isVietnamese = language == .vietnamese
+
+        guard isOnline() else {
+            return isVietnamese
+                ? "Không có kết nối mạng. Kiểm tra Wi-Fi hoặc dữ liệu di động."
+                : "No internet connection. Check Wi-Fi or mobile data."
+        }
+
+        switch cause(of: error) {
+        case .timedOut:
+            return isVietnamese
+                ? "Các nguồn tin phản hồi quá chậm. Thử lại sau ít phút."
+                : "The sources are responding too slowly. Try again in a moment."
+        case .rejected:
+            return isVietnamese
+                ? "Nguồn tin từ chối yêu cầu. Có thể khả dụng lại sau."
+                : "The sources refused the request. They may be available again later."
+        case .unparseable:
+            return isVietnamese
+                ? "Không đọc được dữ liệu từ nguồn tin."
+                : "The news from these sources could not be read."
+        case .unreachable:
+            return isVietnamese
+                ? "Không liên lạc được với nguồn tin."
+                : "The sources could not be reached."
+        case .mixed, .none:
+            return isVietnamese
+                ? "Không thể tải tin tức. Vui lòng thử lại."
+                : "Could not load news. Please try again."
+        }
+    }
+
+    private func cause(of error: Error) -> SourceFailureCause? {
+        switch error as? NewsError {
+        case .allSourcesFailed(_, let cause): return cause
+        case .sourceTimeout: return .timedOut
+        case .invalidResponse: return .rejected
+        case .parsingFailed: return .unparseable
+        case .networkUnavailable: return .unreachable
+        case .cacheFailed, .none: return nil
         }
     }
 }

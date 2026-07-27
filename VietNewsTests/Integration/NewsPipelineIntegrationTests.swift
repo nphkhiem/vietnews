@@ -74,7 +74,7 @@ final class NewsPipelineIntegrationTests: XCTestCase {
             _ = try await useCase.execute(category: .sport, language: .vietnamese)
             XCTFail("Expected throw")
         } catch {
-            XCTAssertEqual(error as? NewsError, .allSourcesFailed([.vnexpress]))
+            XCTAssertEqual(error as? NewsError, .allSourcesFailed([.vnexpress], cause: .rejected))
         }
     }
 }
