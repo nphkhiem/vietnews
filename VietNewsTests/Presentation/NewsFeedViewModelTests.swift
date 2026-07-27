@@ -26,7 +26,7 @@ final class NewsFeedViewModelTests: XCTestCase {
         super.tearDown()
     }
 
-    private func makeSUT() -> NewsFeedViewModel {
+    private func makeSUT(isOnline: Bool = true) -> NewsFeedViewModel {
         NewsFeedViewModel(
             fetchNews: FetchNewsUseCase(
                 articleRepository: articleRepo,
@@ -40,7 +40,8 @@ final class NewsFeedViewModelTests: XCTestCase {
             ),
             preferences: preferences,
             scheduler: scheduler,
-            now: { self.fixedNow }
+            now: { self.fixedNow },
+            isOnline: { isOnline }
         )
     }
 
@@ -106,7 +107,7 @@ final class NewsFeedViewModelTests: XCTestCase {
             fetchedAt: fetchedAt,
             articleLimit: 15
         )
-        articleRepo.result = .failure(NewsError.allSourcesFailed([.vnexpress]))
+        articleRepo.result = .failure(NewsError.allSourcesFailed([.vnexpress], cause: .unreachable))
         let sut = makeSUT()
 
         await sut.start()
@@ -130,6 +131,94 @@ final class NewsFeedViewModelTests: XCTestCase {
 
         XCTAssertEqual(articleRepo.fetchCallCount, 0, "expected this to be served from cache")
         XCTAssertFalse(sut.isShowingStaleData)
+    }
+
+    func test_givenDeviceOffline_whenLoadFails_thenSaysTheDeviceHasNoConnection() async {
+        articleRepo.result = .failure(NewsError.allSourcesFailed([.vnexpress], cause: .unreachable))
+        let sut = makeSUT(isOnline: false)
+
+        await sut.start()
+
+        XCTAssertEqual(sut.state, .failed("Không có kết nối mạng. Kiểm tra Wi-Fi hoặc dữ liệu di động."))
+    }
+
+    func test_givenDeviceOnlineAndSourcesTimedOut_whenLoadFails_thenSaysSourcesAreSlow() async {
+        articleRepo.result = .failure(NewsError.allSourcesFailed([.vnexpress], cause: .timedOut))
+        let sut = makeSUT()
+
+        await sut.start()
+
+        XCTAssertEqual(sut.state, .failed("Các nguồn tin phản hồi quá chậm. Thử lại sau ít phút."))
+    }
+
+    func test_givenDeviceOnlineAndSourcesRefused_whenLoadFails_thenSaysSourcesRefused() async {
+        articleRepo.result = .failure(NewsError.allSourcesFailed([.nyt], cause: .rejected))
+        let sut = makeSUT()
+
+        await sut.start()
+
+        XCTAssertEqual(sut.state, .failed("Nguồn tin từ chối yêu cầu. Có thể khả dụng lại sau."))
+    }
+
+    func test_givenDeviceOnlineAndResponsesUnreadable_whenLoadFails_thenSaysDataCouldNotBeRead() async {
+        articleRepo.result = .failure(NewsError.allSourcesFailed([.nyt], cause: .unparseable))
+        let sut = makeSUT()
+
+        await sut.start()
+
+        XCTAssertEqual(sut.state, .failed("Không đọc được dữ liệu từ nguồn tin."))
+    }
+
+    func test_givenMixedCauses_whenLoadFails_thenFallsBackToTheGenericMessage() async {
+        articleRepo.result = .failure(NewsError.allSourcesFailed([.nyt, .bbc], cause: .mixed))
+        let sut = makeSUT()
+
+        await sut.start()
+
+        XCTAssertEqual(sut.state, .failed("Không thể tải tin tức. Vui lòng thử lại."))
+    }
+
+    func test_givenEveryCause_whenComparingMessages_thenEachOneIsDistinct() async {
+        var messages: Set<String> = []
+        for cause in [SourceFailureCause.timedOut, .rejected, .unparseable, .unreachable, .mixed] {
+            articleRepo.result = .failure(NewsError.allSourcesFailed([.vnexpress], cause: cause))
+            let sut = makeSUT()
+            await sut.start()
+            guard case .failed(let message) = sut.state else {
+                return XCTFail("Expected a failed state for \(cause)")
+            }
+            messages.insert(message)
+        }
+
+        XCTAssertEqual(messages.count, 5, "each cause must produce its own copy")
+    }
+
+    /// Previously a refresh that failed while articles were on screen produced no feedback at all.
+    func test_givenArticlesOnScreen_whenRefreshFails_thenReportsItWithoutLosingTheArticles() async {
+        let articles = [TestFactory.article()]
+        articleRepo.result = .success(FetchResult(articles: articles, failedSources: []))
+        let sut = makeSUT()
+        await sut.start()
+
+        articleRepo.result = .failure(NewsError.allSourcesFailed([.vnexpress], cause: .timedOut))
+        await sut.refresh()
+
+        XCTAssertEqual(sut.articles, articles)
+        XCTAssertEqual(sut.state, .loaded)
+        XCTAssertEqual(sut.refreshFailureMessage, "Các nguồn tin phản hồi quá chậm. Thử lại sau ít phút.")
+    }
+
+    func test_givenAReportedRefreshFailure_whenALaterLoadSucceeds_thenTheReportIsCleared() async {
+        articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
+        let sut = makeSUT()
+        await sut.start()
+        articleRepo.result = .failure(NewsError.allSourcesFailed([.vnexpress], cause: .timedOut))
+        await sut.refresh()
+
+        articleRepo.result = .success(FetchResult(articles: [TestFactory.article()], failedSources: []))
+        await sut.refresh()
+
+        XCTAssertNil(sut.refreshFailureMessage)
     }
 
     func test_givenStartCalledTwice_whenSchedulerAlreadyArmed_thenSchedulerStartsOnce() async {

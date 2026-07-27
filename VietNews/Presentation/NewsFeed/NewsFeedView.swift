@@ -60,6 +60,9 @@ struct NewsFeedView: View {
     private var articleList: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
+                if let message = viewModel.refreshFailureMessage {
+                    refreshFailureBanner(message)
+                }
                 if !viewModel.failedSources.isEmpty {
                     unavailableBanner
                 }
@@ -80,6 +83,16 @@ struct NewsFeedView: View {
             .padding(.vertical, 8)
         }
         .refreshable { await viewModel.refresh() }
+    }
+
+    private func refreshFailureBanner(_ message: String) -> some View {
+        Text(message)
+            .font(.caption)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .padding(.horizontal)
+            .background(Color(.secondarySystemBackground))
     }
 
     private var unavailableBanner: some View {

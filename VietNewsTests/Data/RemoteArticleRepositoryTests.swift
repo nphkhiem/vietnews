@@ -79,10 +79,11 @@ final class RemoteArticleRepositoryTests: XCTestCase {
             _ = try await sut.fetchArticles(category: .sport, language: .english)
             XCTFail("Expected throw")
         } catch {
-            guard case .allSourcesFailed(let sources) = error as? NewsError else {
+            guard case .allSourcesFailed(let sources, let cause) = error as? NewsError else {
                 return XCTFail("Expected allSourcesFailed, got \(error)")
             }
             XCTAssertEqual(Set(sources), [.vnexpress, .bbc])
+            XCTAssertEqual(cause, .unreachable, "both adapters failed with the same cause")
         }
     }
 
@@ -97,7 +98,7 @@ final class RemoteArticleRepositoryTests: XCTestCase {
             _ = try await sut.fetchArticles(category: .sport, language: .english)
             XCTFail("Expected throw")
         } catch {
-            guard case .allSourcesFailed(let sources) = error as? NewsError else {
+            guard case .allSourcesFailed(let sources, _) = error as? NewsError else {
                 return XCTFail("Expected allSourcesFailed, got \(error)")
             }
             XCTAssertEqual(sources, [.vnexpress])
@@ -149,5 +150,37 @@ final class RemoteArticleRepositoryTests: XCTestCase {
         let result = try await sut.fetchArticles(category: .sport, language: .english)
 
         XCTAssertEqual(result.articles.count, 30)
+    }
+
+    func test_givenSourcesFailingForDifferentReasons_whenAllFail_thenReportsAMixedCause() async {
+        let timedOut = FakeAdapter(source: .vnexpress, result: .failure(NewsError.sourceTimeout(.vnexpress)))
+        let refused = FakeAdapter(source: .bbc, result: .failure(NewsError.invalidResponse(statusCode: 403)))
+        let sut = RemoteArticleRepository(adapters: [timedOut, refused])
+
+        do {
+            _ = try await sut.fetchArticles(category: .sport, language: .english)
+            XCTFail("Expected throw")
+        } catch {
+            guard case .allSourcesFailed(_, let cause) = error as? NewsError else {
+                return XCTFail("Expected allSourcesFailed, got \(error)")
+            }
+            XCTAssertEqual(cause, .mixed)
+        }
+    }
+
+    func test_givenEverySourceRefusing_whenAllFail_thenReportsRejected() async {
+        let a = FakeAdapter(source: .vnexpress, result: .failure(NewsError.invalidResponse(statusCode: 403)))
+        let b = FakeAdapter(source: .bbc, result: .failure(NewsError.invalidResponse(statusCode: 404)))
+        let sut = RemoteArticleRepository(adapters: [a, b])
+
+        do {
+            _ = try await sut.fetchArticles(category: .sport, language: .english)
+            XCTFail("Expected throw")
+        } catch {
+            guard case .allSourcesFailed(_, let cause) = error as? NewsError else {
+                return XCTFail("Expected allSourcesFailed, got \(error)")
+            }
+            XCTAssertEqual(cause, .rejected)
+        }
     }
 }

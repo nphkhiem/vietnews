@@ -31,7 +31,7 @@ struct FetchNewsUseCase {
     /// Only `allSourcesFailed` knows which sources were actually attempted. Any other failure
     /// names none, rather than implicating sources that were never part of the request.
     private static func failedSources(from error: Error) -> [NewsSource] {
-        guard case .allSourcesFailed(let sources) = error as? NewsError else { return [] }
+        guard case .allSourcesFailed(let sources, _) = error as? NewsError else { return [] }
         return sources
     }
 

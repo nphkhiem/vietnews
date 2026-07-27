@@ -76,7 +76,7 @@ final class FetchNewsUseCaseTests: XCTestCase {
             articleLimit: 15
         )
         cacheRepo.stored["sport_vi"] = stale
-        articleRepo.result = .failure(NewsError.allSourcesFailed([.vnexpress, .substack]))
+        articleRepo.result = .failure(NewsError.allSourcesFailed([.vnexpress, .substack], cause: .unreachable))
 
         let result = try await makeSUT().execute(category: .sport, language: .vietnamese)
 

@@ -99,7 +99,8 @@ extension Container {
                 fetchNews: self.fetchNewsUseCase(),
                 refreshNews: self.refreshNewsUseCase(),
                 preferences: self.userPreferences(),
-                scheduler: self.refreshScheduler()
+                scheduler: self.refreshScheduler(),
+                isOnline: { [monitor = self.networkMonitor()] in monitor.isOnline }
             )
         }.singleton
     }
