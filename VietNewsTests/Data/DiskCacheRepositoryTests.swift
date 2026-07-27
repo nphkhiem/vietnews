@@ -24,6 +24,26 @@ final class DiskCacheRepositoryTests: XCTestCase {
         )
     }
 
+    /// A source can be retired between releases, leaving cached articles that name a case the
+    /// app no longer has. Loading must degrade to a cache miss and refetch, never trap.
+    func test_givenCachedArticleFromRetiredSource_whenLoading_thenReturnsNilInsteadOfCrashing() throws {
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let stale = """
+        {"fetchedAt": 1000, "articles": [{
+            "id": "https://example.com/a",
+            "title": "Retired source article",
+            "summary": "",
+            "url": "https://example.com/a",
+            "source": "reuters",
+            "category": "world",
+            "publishedAt": 900
+        }]}
+        """
+        try Data(stale.utf8).write(to: tempDir.appendingPathComponent("world_en.json"))
+
+        XCTAssertNil(sut.load(category: .world, language: .english))
+    }
+
     func test_givenSavedEntry_whenLoading_thenReturnsSameEntry() throws {
         let saved = entry()
         try sut.save(saved, category: .sport, language: .vietnamese)
