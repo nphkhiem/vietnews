@@ -19,7 +19,6 @@ final class SourceEndpointTests: XCTestCase {
             VNExpressSource.make(network: network, parser: parser),
             BBCSource.make(network: network, parser: parser),
             EurogamerSource.make(network: network, parser: parser),
-            RedditSource(network: network),
             NYTSource(network: network, apiKey: nytKey),
             SubstackSource(
                 network: network,
@@ -57,16 +56,6 @@ final class SourceEndpointTests: XCTestCase {
         )
         XCTAssertTrue(sut.endpoints(category: .game, language: .vietnamese).isEmpty)
         XCTAssertTrue(sut.endpoints(category: .sport, language: .english).isEmpty)
-    }
-
-    func test_givenReddit_whenAskingForEndpoints_thenOnlyServesEnglish() {
-        let sut = RedditSource(network: network)
-
-        XCTAssertEqual(
-            sut.endpoints(category: .hotNews, language: .english).map(\.absoluteString),
-            ["https://www.reddit.com/r/news/hot.json?limit=15"]
-        )
-        XCTAssertTrue(sut.endpoints(category: .hotNews, language: .vietnamese).isEmpty)
     }
 
     func test_givenNYTWithoutAPIKey_whenAskingForEndpoints_thenReturnsNothing() {

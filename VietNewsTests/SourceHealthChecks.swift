@@ -96,7 +96,6 @@ final class SourceHealthChecks: XCTestCase {
             VNExpressSource.make(network: network, parser: FeedKitRSSParser(parsingSource: .vnexpress)),
             BBCSource.make(network: network, parser: FeedKitRSSParser(parsingSource: .bbc)),
             EurogamerSource.make(network: network, parser: FeedKitRSSParser(parsingSource: .eurogamer)),
-            RedditSource(network: network),
             NYTSource(network: network, apiKey: nytAPIKey()),
             SubstackSource(
                 network: network,

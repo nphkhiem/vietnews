@@ -1,5 +1,5 @@
 enum NewsSource: String, CaseIterable, Codable {
-    case vnexpress, substack, nyt, bbc, reddit, eurogamer
+    case vnexpress, substack, nyt, bbc, eurogamer
 
     var displayName: String {
         switch self {
@@ -7,7 +7,6 @@ enum NewsSource: String, CaseIterable, Codable {
         case .substack: return "Substack"
         case .nyt: return "NY Times"
         case .bbc: return "BBC News"
-        case .reddit: return "Reddit"
         case .eurogamer: return "Eurogamer"
         }
     }
