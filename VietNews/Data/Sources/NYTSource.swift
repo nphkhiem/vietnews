@@ -6,12 +6,15 @@ struct NYTSource: NewsSourceAdapter {
     private let apiKey: String
 
     private static let sections: [NewsCategory: String] = [
-        .sport: "sports",
         .hotNews: "home",
         .world: "world",
         .finance: "business",
         .technology: "technology",
         .car: "automobiles"
+        // .sport intentionally omitted: the sports Top Stories section is retired upstream. It
+        // answers 200 with results: null and has not been updated since 2025-04-30, so keeping
+        // it would attempt a permanently empty endpoint on every load. English Sport is served
+        // by VNExpress and BBC.
     ]
 
     private static let dateFormatter = ISO8601DateFormatter()

@@ -9,6 +9,44 @@ final class NYTSourceTests: XCTestCase {
         return try Data(contentsOf: url)
     }
 
+    private func fixtureData(_ name: String) throws -> Data {
+        let url = try XCTUnwrap(
+            Bundle(for: Self.self).url(forResource: name, withExtension: "json")
+        )
+        return try Data(contentsOf: url)
+    }
+
+    /// The retired sports section answers 200 with `results: null`. That is a section with no
+    /// stories, not a broken response, and reporting it as a parse failure made a working
+    /// endpoint look broken.
+    func test_givenSectionWithNullResults_whenFetching_thenReturnsNoArticlesWithoutFailing() async throws {
+        let network = StubNetworkService()
+        await network.setResult(.success(try fixtureData("nyt_retired_section")))
+        let sut = NYTSource(network: network, apiKey: "key123")
+
+        let articles = try await sut.fetch(category: .world, language: .english)
+
+        XCTAssertTrue(articles.isEmpty)
+    }
+
+    func test_givenRetiredSportsSection_whenCheckingSupport_thenNYTDoesNotClaimSport() {
+        let sut = NYTSource(network: StubNetworkService(), apiKey: "key123")
+
+        XCTAssertFalse(sut.supports(category: .sport, language: .english))
+        XCTAssertTrue(sut.endpoints(category: .sport, language: .english).isEmpty)
+    }
+
+    func test_givenLiveSections_whenCheckingSupport_thenStillServesTheOnesThatWork() {
+        let sut = NYTSource(network: StubNetworkService(), apiKey: "key123")
+
+        for category in [NewsCategory.hotNews, .world, .finance, .technology, .car] {
+            XCTAssertTrue(
+                sut.supports(category: category, language: .english),
+                "expected NYT to still serve \(category)"
+            )
+        }
+    }
+
     func test_givenEmptyAPIKey_whenCheckingSupport_thenReturnsFalse() {
         let sut = NYTSource(network: StubNetworkService(), apiKey: "")
         XCTAssertFalse(sut.supports(category: .world, language: .english))
