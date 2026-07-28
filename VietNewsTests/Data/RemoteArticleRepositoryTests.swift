@@ -55,7 +55,7 @@ final class RemoteArticleRepositoryTests: XCTestCase {
         XCTAssertTrue(result.failedSources.isEmpty)
         // newest first: all 10 eurogamer (epoch 2000+) precede vnexpress
         XCTAssertEqual(result.articles.first?.source, .eurogamer)
-        let dates = result.articles.map(\.publishedAt)
+        let dates = result.articles.map { $0.publishedAt ?? .distantPast }
         XCTAssertEqual(dates, dates.sorted(by: >))
     }
 

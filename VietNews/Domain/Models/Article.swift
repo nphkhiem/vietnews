@@ -8,7 +8,9 @@ struct Article: Identifiable, Equatable, Codable {
     let imageURL: URL?
     let source: NewsSource
     let category: NewsCategory
-    let publishedAt: Date
+    /// Optional because feeds routinely omit or malform the date. Substituting a sentinel made
+    /// the interface display a fabricated timestamp in the year one.
+    let publishedAt: Date?
 
     init(
         title: String,
@@ -17,7 +19,7 @@ struct Article: Identifiable, Equatable, Codable {
         imageURL: URL?,
         source: NewsSource,
         category: NewsCategory,
-        publishedAt: Date
+        publishedAt: Date?
     ) {
         self.id = url.absoluteString
         self.title = title

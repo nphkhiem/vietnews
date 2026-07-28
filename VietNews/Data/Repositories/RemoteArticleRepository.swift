@@ -61,7 +61,9 @@ final class RemoteArticleRepository: ArticleRepository {
 
         let merged = articlesBySource
             .flatMap { $0 }
-            .sorted { $0.publishedAt > $1.publishedAt }
+            // Undated articles sort last: they cannot be placed on the timeline, and putting
+            // them first would push real news down.
+            .sorted { ($0.publishedAt ?? .distantPast) > ($1.publishedAt ?? .distantPast) }
         return FetchResult(articles: Array(merged.prefix(maxArticles())), failedSources: failedSources)
     }
 

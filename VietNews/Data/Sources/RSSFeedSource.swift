@@ -37,7 +37,7 @@ struct RSSFeedSource: NewsSourceAdapter {
                 imageURL: item.imageURL,
                 source: source,
                 category: category,
-                publishedAt: item.publishedAt ?? .distantPast
+                publishedAt: item.publishedAt
             )
         }
     }

@@ -62,7 +62,7 @@ final class VNExpressSourceTests: XCTestCase {
         XCTAssertEqual(articles[0].source, .vnexpress)
         XCTAssertEqual(articles[0].category, .sport)
         XCTAssertEqual(articles[0].publishedAt, date)
-        XCTAssertEqual(articles[1].publishedAt, .distantPast)
+        XCTAssertNil(articles[1].publishedAt, "a missing feed date stays missing rather than becoming the year one")
     }
 
     func test_givenUnmappedCategory_whenFetching_thenReturnsEmptyWithoutNetworkCall() async throws {

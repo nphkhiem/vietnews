@@ -57,7 +57,7 @@ struct NYTSource: NewsSourceAdapter {
                 imageURL: dto.multimedia?.first.flatMap { URL(string: $0.url) },
                 source: .nyt,
                 category: category,
-                publishedAt: Self.dateFormatter.date(from: dto.publishedDate) ?? .distantPast
+                publishedAt: Self.dateFormatter.date(from: dto.publishedDate)
             )
         }
     }

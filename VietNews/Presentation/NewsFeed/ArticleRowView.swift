@@ -20,9 +20,14 @@ struct ArticleRowView: View {
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(Capsule().fill(Color(.secondarySystemBackground)))
-                    Text(ArticleTimestampFormatter.string(for: article.publishedAt, language: language))
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                    if let timestamp = ArticleTimestampFormatter.string(
+                        for: article.publishedAt,
+                        language: language
+                    ) {
+                        Text(timestamp)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             Spacer(minLength: 0)
@@ -40,12 +45,30 @@ struct ArticleRowView: View {
 }
 
 enum ArticleTimestampFormatter {
-    static func string(for date: Date, language: Language, now: Date = Date()) -> String {
+    /// Feeds are routinely a little ahead of the device clock, so a small lead is treated as
+    /// "just now" rather than as a broken date. Beyond that the date is not believable and
+    /// nothing is shown, which is the same treatment a missing date gets.
+    private static let futureTolerance: TimeInterval = 120
+
+    /// Returns nil when there is no date worth showing, so the caller can omit the element
+    /// entirely instead of printing a placeholder.
+    static func string(for date: Date?, language: Language, now: Date = Date()) -> String? {
+        guard let date else { return nil }
+
         let seconds = now.timeIntervalSince(date)
         let isVietnamese = language == .vietnamese
 
+        if seconds < 0 {
+            guard -seconds <= futureTolerance else { return nil }
+            return isVietnamese ? "Vừa xong" : "Just now"
+        }
+
+        if seconds < 60 {
+            return isVietnamese ? "Vừa xong" : "Just now"
+        }
+
         if seconds < 3600 {
-            let minutes = max(1, Int(seconds / 60))
+            let minutes = Int(seconds / 60)
             return isVietnamese ? "\(minutes) phút trước" : "\(minutes) minute\(minutes == 1 ? "" : "s") ago"
         }
 
@@ -59,8 +82,25 @@ enum ArticleTimestampFormatter {
             return isVietnamese ? "\(days) ngày trước" : "\(days) day\(days == 1 ? "" : "s") ago"
         }
 
+        return absoluteFormatter(for: language).string(from: date)
+    }
+
+    /// Built once per language. These were previously constructed on every row for every redraw,
+    /// and `DateFormatter` is one of the more expensive objects in Foundation to create.
+    private static let vietnameseFormatter = makeFormatter(localeIdentifier: "vi_VN")
+    private static let englishFormatter = makeFormatter(localeIdentifier: "en_US")
+
+    private static func absoluteFormatter(for language: Language) -> DateFormatter {
+        language == .vietnamese ? vietnameseFormatter : englishFormatter
+    }
+
+    /// A fixed dd/MM/yyyy pattern read as a US date to half the world. Asking for a medium date
+    /// in the reader's own locale gives each language its own conventional order.
+    private static func makeFormatter(localeIdentifier: String) -> DateFormatter {
         let formatter = DateFormatter()
-        formatter.dateFormat = "dd/MM/yyyy"
-        return formatter.string(from: date)
+        formatter.locale = Locale(identifier: localeIdentifier)
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter
     }
 }
