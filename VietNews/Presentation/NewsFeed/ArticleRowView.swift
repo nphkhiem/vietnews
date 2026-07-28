@@ -13,24 +13,30 @@ struct ArticleRowView: View {
 
     var body: some View {
         Button(action: onOpen) {
-            HStack(alignment: .top, spacing: Tokens.Space.m) {
-                VStack(alignment: .leading, spacing: Tokens.Space.xs + 1) {
-                    sourceLine
-                    headline
-                    summary
-                }
-                Spacer(minLength: 0)
+            VStack(alignment: .leading, spacing: Tokens.Space.xs + 1) {
+                // The image sits beside the source line and headline only. Running it down the
+                // whole row narrowed the summary for its entire height and left a ragged notch
+                // to its right once the image ended.
+                HStack(alignment: .top, spacing: Tokens.Space.m) {
+                    if let imageURL = article.imageURL, !hidesThumbnail {
+                        ThumbnailView(
+                            url: imageURL,
+                            side: thumbnailSide,
+                            language: language,
+                            loader: thumbnailLoader
+                        )
+                    }
 
-                // Trailing, so every headline starts on the same left edge and an article with
-                // no image simply lets the text run full width.
-                if let imageURL = article.imageURL, !hidesThumbnail {
-                    ThumbnailView(
-                        url: imageURL,
-                        side: thumbnailSide,
-                        language: language,
-                        loader: thumbnailLoader
-                    )
+                    VStack(alignment: .leading, spacing: Tokens.Space.xs + 1) {
+                        sourceLine
+                        headline
+                    }
+                    Spacer(minLength: 0)
                 }
+
+                // Full width, so it gets a proper measure rather than being clipped early by
+                // the image beside it.
+                summary
             }
             .padding(.horizontal, Tokens.Space.l)
             .padding(.vertical, Tokens.Space.m)
@@ -91,8 +97,14 @@ struct ArticleRowView: View {
 
     /// At accessibility sizes the headline gains lines rather than truncating mid phrase, and the
     /// summary steps back so a single article does not fill the whole screen.
+    ///
+    /// Beside an image the headline stops at two lines, which is where the image ends. A third
+    /// line would sit alone in the narrowed column with empty space to its right, because text
+    /// cannot flow back around the image once it clears it. Without an image there is no column
+    /// to escape and the headline gets its third line.
     private var headlineLineLimit: Int {
-        dynamicTypeSize.isAccessibilitySize ? 6 : 3
+        if dynamicTypeSize.isAccessibilitySize { return 6 }
+        return showsThumbnail ? 2 : 3
     }
 
     private var summaryLineLimit: Int {
@@ -107,6 +119,10 @@ struct ArticleRowView: View {
 
     private var hidesThumbnail: Bool {
         dynamicTypeSize.isAccessibilitySize
+    }
+
+    private var showsThumbnail: Bool {
+        article.imageURL != nil && !hidesThumbnail
     }
 
     /// Reads as one sentence: what it is, who published it, when, and whether it has been opened.

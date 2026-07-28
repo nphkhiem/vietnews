@@ -64,9 +64,11 @@ enum Tokens {
     }
 
     enum Layout {
-        /// Nominal thumbnail edge at the default text size. It scales with Dynamic Type so the
-        /// image keeps its relationship to the headline beside it.
-        static let thumbnailSide: CGFloat = 80
+        /// Nominal thumbnail edge at the default text size, chosen to match the height of a
+        /// source line plus a two line headline. Any taller and the image, not the text, sets
+        /// the height of the top band, which opens a gap above the summary. It scales with
+        /// Dynamic Type so the image keeps its relationship to the headline beside it.
+        static let thumbnailSide: CGFloat = 64
         /// Vietnamese stacks diacritics above and below, which a tighter leading clips.
         static let headlineLineSpacing: CGFloat = 2
     }
