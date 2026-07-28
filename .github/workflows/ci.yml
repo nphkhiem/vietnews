@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      # project.yml points configFiles at Secrets.xcconfig, which is gitignored. Without it the
+      # project will not generate. The placeholder key leaves the NYT source unconfigured, which
+      # the adapter already handles by reporting no endpoints.
+      - name: Provide placeholder secrets
+        run: cp Secrets.xcconfig.example Secrets.xcconfig
+
+      - name: Generate project
+        run: xcodegen generate
+
+      # Runner images change their simulator lineup between releases, so the destination is
+      # resolved at run time rather than hardcoded to a device that may not exist.
+      - name: Select a simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available --json \
+            | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print(next(x['udid'] for r in sorted(d,reverse=True) for x in d[r] if 'iPhone' in x['name']))")
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl list devices available | grep -m1 -B0 "$UDID" || true
+
+      - name: Test
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project VietNews.xcodeproj \
+            -scheme VietNews \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            -resultBundlePath TestResults.xcresult \
+            | tail -40
+
+      - name: Upload results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults.xcresult
+          retention-days: 7
