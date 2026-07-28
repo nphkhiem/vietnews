@@ -97,9 +97,7 @@ struct NewsFeedView: View {
     }
 
     private var unavailableBanner: some View {
-        Text(viewModel.language == .vietnamese
-             ? "Một số nguồn tin không khả dụng"
-             : "Some sources unavailable")
+        Text(L10n.feedSourcesUnavailable(viewModel.language))
             .font(.caption)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
@@ -113,9 +111,7 @@ struct NewsFeedView: View {
             Image(systemName: "newspaper")
                 .font(.largeTitle)
                 .foregroundStyle(.secondary)
-            Text(viewModel.language == .vietnamese
-                 ? "Không có tin tức trong mục này"
-                 : "No articles in this category")
+            Text(L10n.feedEmpty(viewModel.language))
                 .foregroundStyle(.secondary)
             Spacer()
         }
@@ -130,7 +126,7 @@ struct NewsFeedView: View {
             Text(message)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
-            Button(viewModel.language == .vietnamese ? "Thử lại" : "Retry") {
+            Button(L10n.feedRetry(viewModel.language)) {
                 Task { await viewModel.load() }
             }
             .buttonStyle(.borderedProminent)
@@ -141,12 +137,8 @@ struct NewsFeedView: View {
 
     private func staleLabel(_ date: Date) -> String {
         let formatter = RelativeDateTimeFormatter()
-        formatter.locale = Locale(
-            identifier: viewModel.language == .vietnamese ? "vi_VN" : "en_US"
-        )
+        formatter.locale = viewModel.language.locale
         let relative = formatter.localizedString(for: date, relativeTo: Date())
-        return viewModel.language == .vietnamese
-            ? "Cập nhật lần cuối \(relative)"
-            : "Last updated \(relative)"
+        return L10n.feedLastUpdated(viewModel.language, relative)
     }
 }

@@ -36,7 +36,7 @@ struct ArticleRowView: View {
             // article with no image simply lets the text run full width. Leading placement made
             // absence cost either an empty grey square or a ragged left margin.
             if let imageURL = article.imageURL {
-                ThumbnailView(url: imageURL, side: 80, loader: thumbnailLoader)
+                ThumbnailView(url: imageURL, side: 80, language: language, loader: thumbnailLoader)
             }
         }
         .padding(.horizontal)
@@ -56,30 +56,26 @@ enum ArticleTimestampFormatter {
         guard let date else { return nil }
 
         let seconds = now.timeIntervalSince(date)
-        let isVietnamese = language == .vietnamese
 
         if seconds < 0 {
             guard -seconds <= futureTolerance else { return nil }
-            return isVietnamese ? "Vừa xong" : "Just now"
+            return L10n.timeJustNow(language)
         }
 
         if seconds < 60 {
-            return isVietnamese ? "Vừa xong" : "Just now"
+            return L10n.timeJustNow(language)
         }
 
         if seconds < 3600 {
-            let minutes = Int(seconds / 60)
-            return isVietnamese ? "\(minutes) phút trước" : "\(minutes) minute\(minutes == 1 ? "" : "s") ago"
+            return L10nPlural.minutesAgo(language, count: Int(seconds / 60))
         }
 
         if seconds < 86400 {
-            let hours = Int(seconds / 3600)
-            return isVietnamese ? "\(hours) giờ trước" : "\(hours) hour\(hours == 1 ? "" : "s") ago"
+            return L10nPlural.hoursAgo(language, count: Int(seconds / 3600))
         }
 
         if seconds <= 7 * 86400 {
-            let days = Int(seconds / 86400)
-            return isVietnamese ? "\(days) ngày trước" : "\(days) day\(days == 1 ? "" : "s") ago"
+            return L10nPlural.daysAgo(language, count: Int(seconds / 86400))
         }
 
         return absoluteFormatter(for: language).string(from: date)
@@ -87,18 +83,21 @@ enum ArticleTimestampFormatter {
 
     /// Built once per language. These were previously constructed on every row for every redraw,
     /// and `DateFormatter` is one of the more expensive objects in Foundation to create.
-    private static let vietnameseFormatter = makeFormatter(localeIdentifier: "vi_VN")
-    private static let englishFormatter = makeFormatter(localeIdentifier: "en_US")
+    private static let vietnameseFormatter = makeFormatter(for: .vietnamese)
+    private static let englishFormatter = makeFormatter(for: .english)
 
     private static func absoluteFormatter(for language: Language) -> DateFormatter {
-        language == .vietnamese ? vietnameseFormatter : englishFormatter
+        switch language {
+        case .vietnamese: return vietnameseFormatter
+        case .english: return englishFormatter
+        }
     }
 
     /// A fixed dd/MM/yyyy pattern read as a US date to half the world. Asking for a medium date
     /// in the reader's own locale gives each language its own conventional order.
-    private static func makeFormatter(localeIdentifier: String) -> DateFormatter {
+    private static func makeFormatter(for language: Language) -> DateFormatter {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: localeIdentifier)
+        formatter.locale = language.locale
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
         return formatter

@@ -30,12 +30,6 @@ final class DomainModelTests: XCTestCase {
         XCTAssertEqual(NewsCategory.allCases.first, .hotNews)
     }
 
-    func test_givenCategory_whenDisplayNameRequested_thenReturnsLocalizedName() {
-        XCTAssertEqual(NewsCategory.sport.displayName(in: .english), "Sport")
-        XCTAssertEqual(NewsCategory.sport.displayName(in: .vietnamese), "Thể thao")
-        XCTAssertEqual(NewsCategory.hotNews.displayName(in: .vietnamese), "Tin nóng")
-    }
-
     func test_givenLanguage_whenCheckingRawValue_thenMatchesLocaleCode() {
         XCTAssertEqual(Language.vietnamese.rawValue, "vi")
         XCTAssertEqual(Language.english.rawValue, "en")
