@@ -43,7 +43,17 @@ actor ThumbnailLoader: ThumbnailLoading {
         }
 
         let task = Task<UIImage, Error> { [network] in
-            let data = try await network.data(from: url)
+            // Ask a width-templated CDN for something close to what is being shown, rather than
+            // stretching the small rendition the feed advertised. Falls back to the original if
+            // the larger one cannot be fetched, since a soft image beats an empty frame.
+            let requested = ImageVariant.url(url, targetingWidth: maxPixelSize)
+            let data: Data
+            do {
+                data = try await network.data(from: requested)
+            } catch {
+                guard requested != url else { throw error }
+                data = try await network.data(from: url)
+            }
             guard let image = Self.downsample(data: data, maxPixelSize: maxPixelSize) else {
                 throw ThumbnailError.notAnImage
             }

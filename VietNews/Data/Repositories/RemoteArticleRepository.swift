@@ -64,7 +64,24 @@ final class RemoteArticleRepository: ArticleRepository {
             // Undated articles sort last: they cannot be placed on the timeline, and putting
             // them first would push real news down.
             .sorted { ($0.publishedAt ?? .distantPast) > ($1.publishedAt ?? .distantPast) }
-        return FetchResult(articles: Array(merged.prefix(maxArticles())), failedSources: failedSources)
+
+        return FetchResult(
+            articles: Array(Self.deduplicated(merged).prefix(maxArticles())),
+            failedSources: failedSources
+        )
+    }
+
+    /// Removes articles sharing an identifier, keeping the first.
+    ///
+    /// An article is identified by its URL, and publishers do reissue a story under a new
+    /// headline at the same address: BBC did exactly that with one story appearing twice, once
+    /// as "Uefa reacts with fury to Infantino World Cup plan" and once as "Uefa says Fifa plan
+    /// for private investment in World Cup 'crosses line'". Two entries then carry one
+    /// identifier, and a SwiftUI list given duplicate identifiers renders one of them as an
+    /// empty row. Keeping the first preserves the newest, because this runs after sorting.
+    private static func deduplicated(_ articles: [Article]) -> [Article] {
+        var seen = Set<String>()
+        return articles.filter { seen.insert($0.id).inserted }
     }
 
     /// Collapses per-source errors into one cause. Sources rarely fail for different reasons at
