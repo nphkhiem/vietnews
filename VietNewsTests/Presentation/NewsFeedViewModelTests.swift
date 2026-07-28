@@ -40,6 +40,7 @@ final class NewsFeedViewModelTests: XCTestCase {
             ),
             preferences: preferences,
             scheduler: scheduler,
+            thumbnailLoader: StubThumbnailLoader(),
             now: { self.fixedNow },
             isOnline: { isOnline }
         )
@@ -180,7 +181,7 @@ final class NewsFeedViewModelTests: XCTestCase {
 
     func test_givenEveryCause_whenComparingMessages_thenEachOneIsDistinct() async {
         var messages: Set<String> = []
-        for cause in [SourceFailureCause.timedOut, .rejected, .unparseable, .unreachable, .mixed] {
+        for cause in [SourceFailureCause.timedOut, .rejected, .rateLimited, .unparseable, .unreachable, .mixed] {
             articleRepo.result = .failure(NewsError.allSourcesFailed([.vnexpress], cause: cause))
             let sut = makeSUT()
             await sut.start()
@@ -190,7 +191,7 @@ final class NewsFeedViewModelTests: XCTestCase {
             messages.insert(message)
         }
 
-        XCTAssertEqual(messages.count, 5, "each cause must produce its own copy")
+        XCTAssertEqual(messages.count, 6, "each cause must produce its own copy")
     }
 
     /// Previously a refresh that failed while articles were on screen produced no feedback at all.

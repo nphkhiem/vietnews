@@ -75,7 +75,8 @@ struct NewsFeedView: View {
                     ArticleRowView(
                         article: article,
                         language: viewModel.language,
-                        accessibilityIdentifier: "feed.row.\(article.category.rawValue).\(index)"
+                        accessibilityIdentifier: "feed.row.\(article.category.rawValue).\(index)",
+                        thumbnailLoader: viewModel.thumbnailLoader
                     )
                     .onTapGesture { presentedArticle = article }
                 }
