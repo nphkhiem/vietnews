@@ -46,6 +46,7 @@ enum L10n: String, CaseIterable {
     case categorySocial = "category.social"
     case categoryGame = "category.game"
 
+    case articleRead = "article.read"
     case thumbnailRetry = "thumbnail.retry"
 
     func callAsFunction(_ language: Language) -> String {

@@ -12,7 +12,7 @@ final class FeedUITests: XCTestCase {
     }
 
     func test_givenAppLaunch_whenFeedTabShown_thenStubArticlesAreDisplayed() {
-        let firstArticle = app.staticTexts[A11y.feedRow(category: "hotNews", index: 0)]
+        let firstArticle = app.buttons[A11y.feedRow(category: "hotNews", index: 0)]
 
         XCTAssertTrue(firstArticle.waitForExistence(timeout: 5))
     }
@@ -20,7 +20,7 @@ final class FeedUITests: XCTestCase {
     func test_givenFeedShown_whenSelectingSportCategory_thenSportStubArticlesAppear() {
         app.buttons[A11y.feedCategory("sport")].tap()
 
-        let sportArticle = app.staticTexts[A11y.feedRow(category: "sport", index: 0)]
+        let sportArticle = app.buttons[A11y.feedRow(category: "sport", index: 0)]
         XCTAssertTrue(sportArticle.waitForExistence(timeout: 5))
     }
 
@@ -46,6 +46,19 @@ final class FeedUITests: XCTestCase {
         let vietnameseOnlyCategory = app.buttons[A11y.feedCategory("social")]
         XCTAssertTrue(vietnameseOnlyCategory.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons[A11y.feedCategory("game")].exists)
+    }
+
+    /// A row must be reachable and activatable as a button. Before ticket 18 the row exposed no
+    /// action at all, so the app's main interaction was unavailable to assistive technology.
+    func test_givenFeedShown_whenInspectingARow_thenItIsAButtonCarryingItsHeadline() {
+        let row = app.buttons[A11y.feedRow(category: "hotNews", index: 0)]
+
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertTrue(row.isHittable)
+        XCTAssertTrue(
+            row.label.contains("Story 1"),
+            "the row should read as one element carrying its headline, got: \(row.label)"
+        )
     }
 
     func test_givenFeedShown_whenSelectingSettingsTab_thenSettingsScreenAppears() {

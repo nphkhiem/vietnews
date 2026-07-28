@@ -3,44 +3,138 @@ import SwiftUI
 struct ArticleRowView: View {
     let article: Article
     let language: Language
+    let isRead: Bool
     /// Stable handle for UI tests, so a query never depends on localized copy.
     let accessibilityIdentifier: String
     let thumbnailLoader: ThumbnailLoading
+    let onOpen: () -> Void
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(article.title)
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(2)
-                    .accessibilityIdentifier(accessibilityIdentifier)
-                HStack(spacing: 6) {
-                    Text(article.source.displayName)
-                        .font(.caption2.weight(.medium))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(Color(.secondarySystemBackground)))
-                    if let timestamp = ArticleTimestampFormatter.string(
-                        for: article.publishedAt,
-                        language: language
-                    ) {
-                        Text(timestamp)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+        Button(action: onOpen) {
+            VStack(alignment: .leading, spacing: Tokens.Space.xs + 1) {
+                // The image sits beside the source line and headline only. Running it down the
+                // whole row narrowed the summary for its entire height and left a ragged notch
+                // to its right once the image ended.
+                HStack(alignment: .top, spacing: Tokens.Space.m) {
+                    if let imageURL = article.imageURL, !hidesThumbnail {
+                        ThumbnailView(
+                            url: imageURL,
+                            side: thumbnailSide,
+                            language: language,
+                            loader: thumbnailLoader
+                        )
                     }
-                }
-            }
-            Spacer(minLength: 0)
 
-            // Trailing rather than leading, so every headline starts on the same left edge and an
-            // article with no image simply lets the text run full width. Leading placement made
-            // absence cost either an empty grey square or a ragged left margin.
-            if let imageURL = article.imageURL {
-                ThumbnailView(url: imageURL, side: 80, language: language, loader: thumbnailLoader)
+                    VStack(alignment: .leading, spacing: Tokens.Space.xs + 1) {
+                        sourceLine
+                        headline
+                    }
+                    Spacer(minLength: 0)
+                }
+
+                // Full width, so it gets a proper measure rather than being clipped early by
+                // the image beside it.
+                summary
+            }
+            .padding(.horizontal, Tokens.Space.l)
+            .padding(.vertical, Tokens.Space.m)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        // One element rather than four, so VoiceOver reads the row as an article and can open
+        // it. Previously the row exposed no action at all, which left the app's main
+        // interaction unavailable to anyone using it.
+        .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier(accessibilityIdentifier)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityAddTraits(.isButton)
+    }
+
+    private var sourceLine: some View {
+        HStack(spacing: Tokens.Space.s) {
+            // Uppercase and tracked, so a source is recognisable by its shape before it is read
+            // and is never distinguished by colour alone.
+            Text(article.source.displayName.uppercased())
+                .font(Tokens.Typography.meta)
+                .tracking(0.8)
+                .foregroundStyle(isRead ? Tokens.Palette.inkTertiary : Tokens.Palette.source(article.source))
+
+            if let timestamp = ArticleTimestampFormatter.string(for: article.publishedAt, language: language) {
+                Text(verbatim: "·")
+                    .font(Tokens.Typography.meta)
+                    .foregroundStyle(Tokens.Palette.inkTertiary)
+                Text(timestamp)
+                    .font(Tokens.Typography.meta.weight(.regular))
+                    .foregroundStyle(Tokens.Palette.inkTertiary)
             }
         }
-        .padding(.horizontal)
-        .contentShape(Rectangle())
+    }
+
+    // A read headline changes colour only. Nothing moves, so a refreshed feed does not reflow
+    // under the reader.
+    private var headline: some View {
+        Text(article.title)
+            .font(Tokens.Typography.headline)
+            .lineSpacing(Tokens.Layout.headlineLineSpacing)
+            .foregroundStyle(isRead ? Tokens.Palette.inkRead : Tokens.Palette.ink)
+            .lineLimit(headlineLineLimit)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    @ViewBuilder
+    private var summary: some View {
+        let text = article.summary.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !text.isEmpty {
+            Text(text)
+                .font(Tokens.Typography.summary)
+                .foregroundStyle(Tokens.Palette.inkSecondary)
+                .lineLimit(summaryLineLimit)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// At accessibility sizes the headline gains lines rather than truncating mid phrase, and the
+    /// summary steps back so a single article does not fill the whole screen.
+    ///
+    /// Beside an image the headline stops at two lines, which is where the image ends. A third
+    /// line would sit alone in the narrowed column with empty space to its right, because text
+    /// cannot flow back around the image once it clears it. Without an image there is no column
+    /// to escape and the headline gets its third line.
+    private var headlineLineLimit: Int {
+        if dynamicTypeSize.isAccessibilitySize { return 6 }
+        return showsThumbnail ? 2 : 3
+    }
+
+    private var summaryLineLimit: Int {
+        dynamicTypeSize.isAccessibilitySize ? 1 : 2
+    }
+
+    /// The thumbnail grows with text so it keeps its relationship to the headline beside it, and
+    /// drops out entirely at accessibility sizes where the words need the full width.
+    private var thumbnailSide: CGFloat {
+        dynamicTypeSize >= .xxLarge ? Tokens.Layout.thumbnailSide * 1.25 : Tokens.Layout.thumbnailSide
+    }
+
+    private var hidesThumbnail: Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
+
+    private var showsThumbnail: Bool {
+        article.imageURL != nil && !hidesThumbnail
+    }
+
+    /// Reads as one sentence: what it is, who published it, when, and whether it has been opened.
+    private var accessibilityLabel: String {
+        var parts = [article.title, article.source.displayName]
+        if let timestamp = ArticleTimestampFormatter.string(for: article.publishedAt, language: language) {
+            parts.append(timestamp)
+        }
+        if isRead {
+            parts.append(L10n.articleRead(language))
+        }
+        return parts.joined(separator: ", ")
     }
 }
 
@@ -93,7 +187,7 @@ enum ArticleTimestampFormatter {
         }
     }
 
-    /// A fixed dd/MM/yyyy pattern read as a US date to half the world. Asking for a medium date
+    /// A fixed dd/MM/yyyy pattern reads as a US date to half the world. Asking for a medium date
     /// in the reader's own locale gives each language its own conventional order.
     private static func makeFormatter(for language: Language) -> DateFormatter {
         let formatter = DateFormatter()

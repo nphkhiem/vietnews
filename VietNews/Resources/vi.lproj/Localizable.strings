@@ -44,5 +44,8 @@
 "category.social" = "Góc nhìn";
 "category.game" = "Trò chơi";
 
+/* Articles */
+"article.read" = "Đã đọc";
+
 /* Images */
 "thumbnail.retry" = "Tải lại ảnh";

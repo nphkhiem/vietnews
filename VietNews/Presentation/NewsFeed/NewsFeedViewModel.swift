@@ -22,6 +22,9 @@ final class NewsFeedViewModel: ObservableObject {
     /// A failure that happened while articles were already on screen. Previously such a failure
     /// produced no feedback at all: the reader pulled to refresh and nothing happened.
     @Published private(set) var refreshFailureMessage: String?
+    /// Articles the reader has opened this session. Ticket 23 makes this survive relaunch; the
+    /// treatment itself is verifiable without persistence.
+    @Published private(set) var readArticleIDs: Set<String> = []
 
     /// Held here rather than resolved inside the row, so a row stays a plain value type that a
     /// preview or a test can construct with a stub.
@@ -62,6 +65,10 @@ final class NewsFeedViewModel: ObservableObject {
     func start() async {
         armSchedulerIfNeeded()
         await load()
+    }
+
+    func markRead(_ article: Article) {
+        readArticleIDs.insert(article.id)
     }
 
     func stop() {
