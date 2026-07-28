@@ -1,0 +1,48 @@
+/* Tab bar */
+"tab.feed" = "Tin tức";
+"tab.settings" = "Cài đặt";
+
+/* Feed status */
+"banner.offline" = "Ngoại tuyến. Đang hiển thị tin đã lưu.";
+"feed.sourcesUnavailable" = "Một số nguồn tin không khả dụng";
+"feed.empty" = "Không có tin tức trong mục này";
+"feed.retry" = "Thử lại";
+"feed.lastUpdated" = "Cập nhật lần cuối %@";
+
+/* Failure causes. Each one suggests a different next step, so they must stay distinct. */
+"error.offline" = "Không có kết nối mạng. Kiểm tra Wi-Fi hoặc dữ liệu di động.";
+"error.timedOut" = "Các nguồn tin phản hồi quá chậm. Thử lại sau ít phút.";
+"error.rejected" = "Nguồn tin từ chối yêu cầu. Có thể khả dụng lại sau.";
+"error.rateLimited" = "Nguồn tin tạm thời giới hạn truy cập. Thử lại sau ít phút.";
+"error.unparseable" = "Không đọc được dữ liệu từ nguồn tin.";
+"error.unreachable" = "Không liên lạc được với nguồn tin.";
+"error.generic" = "Không thể tải tin tức. Vui lòng thử lại.";
+
+/* Timestamps. Counted forms live in Localizable.stringsdict. */
+"time.justNow" = "Vừa xong";
+
+/* Settings */
+"settings.title" = "Cài đặt";
+"settings.section.language" = "Ngôn ngữ";
+"settings.section.autoRefresh" = "Tự động làm mới";
+"settings.section.maxArticles" = "Số lượng tin tối đa";
+"settings.section.substack" = "Substack đã theo dõi";
+"settings.maxArticles.label" = "Số lượng tin tối đa";
+"settings.substack.urlPlaceholder" = "Địa chỉ Substack";
+"settings.category" = "Chuyên mục";
+"settings.add" = "Thêm";
+"settings.invalidURL.title" = "Địa chỉ không hợp lệ";
+
+/* Categories */
+"category.hotNews" = "Tin nóng";
+"category.sport" = "Thể thao";
+"category.world" = "Thế giới";
+"category.finance" = "Kinh doanh";
+"category.work" = "Đời sống";
+"category.technology" = "Công nghệ";
+"category.car" = "Xe";
+"category.social" = "Góc nhìn";
+"category.game" = "Trò chơi";
+
+/* Images */
+"thumbnail.retry" = "Tải lại ảnh";
