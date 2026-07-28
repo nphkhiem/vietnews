@@ -44,5 +44,8 @@
 "category.social" = "Social";
 "category.game" = "Game";
 
+/* Articles */
+"article.read" = "Read";
+
 /* Images */
 "thumbnail.retry" = "Reload image";

@@ -59,7 +59,7 @@ struct NewsFeedView: View {
 
     private var articleList: some View {
         ScrollView {
-            LazyVStack(spacing: 16) {
+            LazyVStack(spacing: 0) {
                 if let message = viewModel.refreshFailureMessage {
                     refreshFailureBanner(message)
                 }
@@ -75,13 +75,18 @@ struct NewsFeedView: View {
                     ArticleRowView(
                         article: article,
                         language: viewModel.language,
+                        isRead: viewModel.readArticleIDs.contains(article.id),
                         accessibilityIdentifier: "feed.row.\(article.category.rawValue).\(index)",
-                        thumbnailLoader: viewModel.thumbnailLoader
+                        thumbnailLoader: viewModel.thumbnailLoader,
+                        onOpen: {
+                            viewModel.markRead(article)
+                            presentedArticle = article
+                        }
                     )
-                    .onTapGesture { presentedArticle = article }
+                    Divider()
+                        .overlay(Tokens.Palette.hairline)
                 }
             }
-            .padding(.vertical, 8)
         }
         .refreshable { await viewModel.refresh() }
     }
