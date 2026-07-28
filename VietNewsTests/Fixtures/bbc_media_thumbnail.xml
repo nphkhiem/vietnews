@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+    <channel>
+        <title><![CDATA[BBC News]]></title>
+        <description><![CDATA[BBC News - News Front Page]]></description>
+        <link>https://www.bbc.co.uk/news</link>
+        <image>
+            <url>https://news.bbcimg.co.uk/nol/shared/img/bbc_news_120x60.gif</url>
+            <title>BBC News</title>
+            <link>https://www.bbc.co.uk/news</link>
+        </image>
+        <generator>RSS for Node</generator>
+        <lastBuildDate>Tue, 28 Jul 2026 15:15:25 GMT</lastBuildDate>
+        <atom:link href="https://feeds.bbci.co.uk/news/rss.xml" rel="self" type="application/rss+xml"/>
+        <copyright><![CDATA[Copyright: (C) British Broadcasting Corporation, see https://www.bbc.co.uk/usingthebbc/terms-of-use/#15metadataandrssfeeds for terms and conditions of reuse.]]></copyright>
+        <language><![CDATA[en-gb]]></language>
+        <ttl>15</ttl>
+        <item>
+            <title><![CDATA[French Navy carries out 'shooting drill' during MP's BBC interview]]></title>
+            <description><![CDATA[Shadow Home Secretary Chris Philp says the vessel fired 17 shots as he was giving a BBC interview.]]></description>
+            <link>https://www.bbc.co.uk/news/articles/cy4ker2y1mko?at_medium=RSS&amp;at_campaign=rss</link>
+            <guid isPermaLink="false">https://www.bbc.co.uk/news/articles/cy4ker2y1mko#0</guid>
+            <pubDate>Tue, 28 Jul 2026 13:53:26 GMT</pubDate>
+            <media:thumbnail width="240" height="135" url="https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/cb86/live/0c7ab500-8a6e-11f1-924e-bfa32777c3ff.jpg"/>
+        </item>
+<item>
+            <title><![CDATA[Powell says student loan system at top of in-tray]]></title>
+            <description><![CDATA[She says she stands by past comments that the interest charged on Plan 2 loans is "egregious".]]></description>
+            <link>https://www.bbc.co.uk/news/articles/ce8l064xe52o?at_medium=RSS&amp;at_campaign=rss</link>
+            <guid isPermaLink="false">https://www.bbc.co.uk/news/articles/ce8l064xe52o#0</guid>
+            <pubDate>Tue, 28 Jul 2026 14:50:02 GMT</pubDate>
+            <media:thumbnail width="240" height="135" url="https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/f653/live/273d6be0-8a8b-11f1-b8ee-9b3c26ad07bb.jpg"/>
+        </item>
+</channel>
+</rss>

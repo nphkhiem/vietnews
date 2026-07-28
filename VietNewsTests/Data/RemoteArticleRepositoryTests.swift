@@ -183,4 +183,32 @@ final class RemoteArticleRepositoryTests: XCTestCase {
             XCTAssertEqual(cause, .rejected)
         }
     }
+
+    /// Publishers reissue a story under a new headline at the same address, which gives two
+    /// articles one identifier. A SwiftUI list handed duplicate identifiers renders one of them
+    /// as an empty row, which is exactly what was observed in the feed.
+    func test_givenTwoArticlesSharingAURL_whenFetching_thenOnlyOneSurvives() async throws {
+        let url = "https://example.com/same-story"
+        let reissued = TestFactory.article(
+            url: url, title: "Reissued headline", source: .bbc,
+            publishedAt: Date(timeIntervalSince1970: 2_000)
+        )
+        let original = TestFactory.article(
+            url: url, title: "Original headline", source: .bbc,
+            publishedAt: Date(timeIntervalSince1970: 1_000)
+        )
+        let other = TestFactory.article(
+            url: "https://example.com/other", source: .bbc,
+            publishedAt: Date(timeIntervalSince1970: 500)
+        )
+        let sut = RemoteArticleRepository(
+            adapters: [FakeAdapter(source: .bbc, result: .success([reissued, original, other]))]
+        )
+
+        let result = try await sut.fetchArticles(category: .sport, language: .english)
+
+        XCTAssertEqual(result.articles.count, 2)
+        XCTAssertEqual(Set(result.articles.map(\.id)).count, 2, "identifiers must be unique")
+        XCTAssertEqual(result.articles.first?.title, "Reissued headline", "the newest is kept")
+    }
 }
