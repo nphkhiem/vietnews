@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 @testable import VietNews
 
 final class MockArticleRepository: ArticleRepository {
@@ -111,5 +112,13 @@ final class MockRefreshScheduler: RefreshScheduling {
 
     func fireTick() {
         onTick?()
+    }
+}
+
+/// Never asked to load anything in view model tests, which are about feed state rather than
+/// images, but the view model needs something to hand to its rows.
+struct StubThumbnailLoader: ThumbnailLoading {
+    func thumbnail(for url: URL, maxPixelSize: Int) async throws -> UIImage {
+        throw ThumbnailError.notAnImage
     }
 }

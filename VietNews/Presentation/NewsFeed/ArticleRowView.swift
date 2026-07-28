@@ -5,24 +5,10 @@ struct ArticleRowView: View {
     let language: Language
     /// Stable handle for UI tests, so a query never depends on localized copy.
     let accessibilityIdentifier: String
+    let thumbnailLoader: ThumbnailLoading
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            AsyncImage(url: article.imageURL) { phase in
-                switch phase {
-                case .success(let image):
-                    image.resizable().aspectRatio(contentMode: .fill)
-                default:
-                    ZStack {
-                        Color(.secondarySystemBackground)
-                        Image(systemName: "newspaper")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .frame(width: 80, height: 80)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-
             VStack(alignment: .leading, spacing: 6) {
                 Text(article.title)
                     .font(.subheadline.weight(.semibold))
@@ -40,6 +26,13 @@ struct ArticleRowView: View {
                 }
             }
             Spacer(minLength: 0)
+
+            // Trailing rather than leading, so every headline starts on the same left edge and an
+            // article with no image simply lets the text run full width. Leading placement made
+            // absence cost either an empty grey square or a ragged left margin.
+            if let imageURL = article.imageURL {
+                ThumbnailView(url: imageURL, side: 80, loader: thumbnailLoader)
+            }
         }
         .padding(.horizontal)
         .contentShape(Rectangle())

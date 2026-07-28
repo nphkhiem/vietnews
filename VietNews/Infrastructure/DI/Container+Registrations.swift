@@ -3,10 +3,11 @@ import Foundation
 
 extension Container {
     var networkService: Factory<NetworkService> {
-        self {
-            URLCache.shared = URLCache(memoryCapacity: 10 * 1024 * 1024, diskCapacity: 50 * 1024 * 1024)
-            return RetryingNetworkService(wrapping: URLSessionNetworkService())
-        }.singleton
+        self { RetryingNetworkService(wrapping: URLSessionNetworkService()) }.singleton
+    }
+
+    var thumbnailLoader: Factory<ThumbnailLoading> {
+        self { ThumbnailLoader(network: self.networkService()) }.singleton
     }
 
     var userPreferences: Factory<UserPreferences> {
@@ -100,6 +101,7 @@ extension Container {
                 refreshNews: self.refreshNewsUseCase(),
                 preferences: self.userPreferences(),
                 scheduler: self.refreshScheduler(),
+                thumbnailLoader: self.thumbnailLoader(),
                 isOnline: { [monitor = self.networkMonitor()] in monitor.isOnline }
             )
         }.singleton

@@ -2,14 +2,7 @@ import XCTest
 @testable import VietNews
 
 final class NYTSourceTests: XCTestCase {
-    private func fixtureData() throws -> Data {
-        let url = try XCTUnwrap(
-            Bundle(for: Self.self).url(forResource: "nyt_world", withExtension: "json")
-        )
-        return try Data(contentsOf: url)
-    }
-
-    private func fixtureData(_ name: String) throws -> Data {
+    private func fixtureData(_ name: String = "nyt_world") throws -> Data {
         let url = try XCTUnwrap(
             Bundle(for: Self.self).url(forResource: name, withExtension: "json")
         )

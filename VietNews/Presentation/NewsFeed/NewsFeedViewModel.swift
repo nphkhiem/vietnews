@@ -23,6 +23,10 @@ final class NewsFeedViewModel: ObservableObject {
     /// produced no feedback at all: the reader pulled to refresh and nothing happened.
     @Published private(set) var refreshFailureMessage: String?
 
+    /// Held here rather than resolved inside the row, so a row stays a plain value type that a
+    /// preview or a test can construct with a stub.
+    let thumbnailLoader: ThumbnailLoading
+
     private let fetchNews: FetchNewsUseCase
     private let refreshNews: RefreshNewsUseCase
     private let preferences: UserPreferences
@@ -38,11 +42,13 @@ final class NewsFeedViewModel: ObservableObject {
         refreshNews: RefreshNewsUseCase,
         preferences: UserPreferences,
         scheduler: RefreshScheduling,
+        thumbnailLoader: ThumbnailLoading,
         now: @escaping () -> Date = Date.init,
         isOnline: @escaping () -> Bool = { true }
     ) {
         self.fetchNews = fetchNews
         self.refreshNews = refreshNews
+        self.thumbnailLoader = thumbnailLoader
         self.preferences = preferences
         self.scheduler = scheduler
         self.now = now
