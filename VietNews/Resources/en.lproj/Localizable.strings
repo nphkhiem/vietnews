@@ -1,0 +1,48 @@
+/* Tab bar */
+"tab.feed" = "Feed";
+"tab.settings" = "Settings";
+
+/* Feed status */
+"banner.offline" = "Offline. Showing saved news.";
+"feed.sourcesUnavailable" = "Some sources unavailable";
+"feed.empty" = "No articles in this category";
+"feed.retry" = "Retry";
+"feed.lastUpdated" = "Last updated %@";
+
+/* Failure causes. Each one suggests a different next step, so they must stay distinct. */
+"error.offline" = "No internet connection. Check Wi-Fi or mobile data.";
+"error.timedOut" = "The sources are responding too slowly. Try again in a moment.";
+"error.rejected" = "The sources refused the request. They may be available again later.";
+"error.rateLimited" = "The sources are temporarily limiting requests. Try again in a few minutes.";
+"error.unparseable" = "The news from these sources could not be read.";
+"error.unreachable" = "The sources could not be reached.";
+"error.generic" = "Could not load news. Please try again.";
+
+/* Timestamps. Counted forms live in Localizable.stringsdict. */
+"time.justNow" = "Just now";
+
+/* Settings */
+"settings.title" = "Settings";
+"settings.section.language" = "Language";
+"settings.section.autoRefresh" = "Auto-refresh";
+"settings.section.maxArticles" = "Max articles per category";
+"settings.section.substack" = "Substack subscriptions";
+"settings.maxArticles.label" = "Max articles";
+"settings.substack.urlPlaceholder" = "Substack URL";
+"settings.category" = "Category";
+"settings.add" = "Add";
+"settings.invalidURL.title" = "Invalid URL";
+
+/* Categories */
+"category.hotNews" = "Hot News";
+"category.sport" = "Sport";
+"category.world" = "World";
+"category.finance" = "Finance";
+"category.work" = "Work";
+"category.technology" = "Technology";
+"category.car" = "Car";
+"category.social" = "Social";
+"category.game" = "Game";
+
+/* Images */
+"thumbnail.retry" = "Reload image";
