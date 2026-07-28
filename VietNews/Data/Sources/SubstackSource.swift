@@ -44,7 +44,7 @@ struct SubstackSource: NewsSourceAdapter {
                             imageURL: item.imageURL,
                             source: .substack,
                             category: category,
-                            publishedAt: item.publishedAt ?? .distantPast
+                            publishedAt: item.publishedAt
                         )
                     }
                 }
