@@ -6,6 +6,7 @@ import SwiftUI
 struct ThumbnailView: View {
     let url: URL
     let side: CGFloat
+    let language: Language
     let loader: ThumbnailLoading
 
     @Environment(\.displayScale) private var displayScale
@@ -37,15 +38,11 @@ struct ThumbnailView: View {
                 }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(retryLabel)
+            .accessibilityLabel(L10n.thumbnailRetry(language))
         } else {
             Color(.secondarySystemBackground)
                 .accessibilityHidden(true)
         }
-    }
-
-    private var retryLabel: String {
-        Locale.current.language.languageCode?.identifier == "vi" ? "Tải lại ảnh" : "Reload image"
     }
 
     private func load() async {

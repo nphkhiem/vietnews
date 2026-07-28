@@ -200,40 +200,19 @@ final class NewsFeedViewModel: ObservableObject {
     /// Connectivity is checked before blaming the network, because "you are offline" is only
     /// useful when it is true. A device that is online and sources that are all refusing are two
     /// different problems with two different next steps.
+    /// Connectivity is checked before blaming the network, because "you are offline" is only
+    /// useful when it is true. A device that is online and sources that are all refusing are two
+    /// different problems with two different next steps.
     private func errorMessage(for error: Error) -> String {
-        let isVietnamese = language == .vietnamese
-
-        guard isOnline() else {
-            return isVietnamese
-                ? "Không có kết nối mạng. Kiểm tra Wi-Fi hoặc dữ liệu di động."
-                : "No internet connection. Check Wi-Fi or mobile data."
-        }
+        guard isOnline() else { return L10n.errorOffline(language) }
 
         switch cause(of: error) {
-        case .timedOut:
-            return isVietnamese
-                ? "Các nguồn tin phản hồi quá chậm. Thử lại sau ít phút."
-                : "The sources are responding too slowly. Try again in a moment."
-        case .rejected:
-            return isVietnamese
-                ? "Nguồn tin từ chối yêu cầu. Có thể khả dụng lại sau."
-                : "The sources refused the request. They may be available again later."
-        case .rateLimited:
-            return isVietnamese
-                ? "Nguồn tin tạm thời giới hạn truy cập. Thử lại sau ít phút."
-                : "The sources are temporarily limiting requests. Try again in a few minutes."
-        case .unparseable:
-            return isVietnamese
-                ? "Không đọc được dữ liệu từ nguồn tin."
-                : "The news from these sources could not be read."
-        case .unreachable:
-            return isVietnamese
-                ? "Không liên lạc được với nguồn tin."
-                : "The sources could not be reached."
-        case .mixed, .none:
-            return isVietnamese
-                ? "Không thể tải tin tức. Vui lòng thử lại."
-                : "Could not load news. Please try again."
+        case .timedOut: return L10n.errorTimedOut(language)
+        case .rejected: return L10n.errorRejected(language)
+        case .rateLimited: return L10n.errorRateLimited(language)
+        case .unparseable: return L10n.errorUnparseable(language)
+        case .unreachable: return L10n.errorUnreachable(language)
+        case .mixed, .none: return L10n.errorGeneric(language)
         }
     }
 

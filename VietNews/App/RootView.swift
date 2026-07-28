@@ -9,10 +9,7 @@ struct RootView: View {
         TabView {
             NewsFeedView(viewModel: feedViewModel)
                 .tabItem {
-                    Label(
-                        feedViewModel.language == .vietnamese ? "Tin tức" : "Feed",
-                        systemImage: "newspaper"
-                    )
+                    Label(L10n.tabFeed(feedViewModel.language), systemImage: "newspaper")
                 }
 
             SettingsView(
@@ -20,17 +17,12 @@ struct RootView: View {
                 feedViewModel: feedViewModel
             )
             .tabItem {
-                Label(
-                    feedViewModel.language == .vietnamese ? "Cài đặt" : "Settings",
-                    systemImage: "gearshape"
-                )
+                Label(L10n.tabSettings(feedViewModel.language), systemImage: "gearshape")
             }
         }
         .safeAreaInset(edge: .top, spacing: 0) {
             if !networkMonitor.isOnline {
-                Text(feedViewModel.language == .vietnamese
-                     ? "Ngoại tuyến — đang hiển thị tin đã lưu"
-                     : "Offline — showing cached news")
+                Text(L10n.bannerOffline(feedViewModel.language))
                     .font(.caption.weight(.medium))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 4)

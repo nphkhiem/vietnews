@@ -7,13 +7,16 @@ struct SettingsView: View {
     @State private var newFeedCategory: NewsCategory = .technology
     @State private var showInvalidURLAlert = false
 
-    private var isVietnamese: Bool { feedViewModel.language == .vietnamese }
+    private var language: Language { feedViewModel.language }
 
     var body: some View {
         NavigationStack {
             Form {
-                Section(isVietnamese ? "Ngôn ngữ" : "Language") {
-                    Picker(isVietnamese ? "Ngôn ngữ" : "Language", selection: languageBinding) {
+                Section(L10n.settingsSectionLanguage(language)) {
+                    Picker(L10n.settingsSectionLanguage(language), selection: languageBinding) {
+                        // Deliberately not translated. A language is always listed in its own
+                        // name, so a reader who cannot read the current language can still find
+                        // the one they want.
                         Text("Tiếng Việt").tag(Language.vietnamese)
                         Text("English").tag(Language.english)
                     }
@@ -21,16 +24,16 @@ struct SettingsView: View {
                     .accessibilityIdentifier("settings.language.picker")
                 }
 
-                Section(isVietnamese ? "Tự động làm mới" : "Auto-refresh") {
+                Section(L10n.settingsSectionAutoRefresh(language)) {
                     VStack(alignment: .leading) {
                         Text(intervalLabel)
                         Slider(value: $viewModel.refreshInterval, in: 300...600, step: 60)
                     }
                 }
 
-                Section(isVietnamese ? "Số lượng tin tối đa" : "Max articles per category") {
+                Section(L10n.settingsSectionMaxArticles(language)) {
                     Picker(
-                        isVietnamese ? "Số lượng tin tối đa" : "Max articles",
+                        L10n.settingsMaxArticlesLabel(language),
                         selection: $viewModel.maxArticles
                     ) {
                         ForEach([15, 30, 50, 70], id: \.self) { count in
@@ -40,11 +43,11 @@ struct SettingsView: View {
                     .pickerStyle(.segmented)
                 }
 
-                Section(isVietnamese ? "Substack đã theo dõi" : "Substack subscriptions") {
+                Section(L10n.settingsSectionSubstack(language)) {
                     ForEach(viewModel.substackFeeds, id: \.url) { feed in
                         VStack(alignment: .leading, spacing: 2) {
                             Text(feed.url.host ?? feed.url.absoluteString)
-                            Text(feed.category.displayName(in: feedViewModel.language))
+                            Text(feed.category.displayName(in: language))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -54,21 +57,21 @@ struct SettingsView: View {
                     }
 
                     TextField(
-                        isVietnamese ? "Địa chỉ Substack" : "Substack URL",
+                        L10n.settingsSubstackURLPlaceholder(language),
                         text: $newFeedURL
                     )
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .keyboardType(.URL)
 
-                    Picker(isVietnamese ? "Chuyên mục" : "Category", selection: $newFeedCategory) {
-                        Text(NewsCategory.work.displayName(in: feedViewModel.language))
+                    Picker(L10n.settingsCategory(language), selection: $newFeedCategory) {
+                        Text(NewsCategory.work.displayName(in: language))
                             .tag(NewsCategory.work)
-                        Text(NewsCategory.technology.displayName(in: feedViewModel.language))
+                        Text(NewsCategory.technology.displayName(in: language))
                             .tag(NewsCategory.technology)
                     }
 
-                    Button(isVietnamese ? "Thêm" : "Add") {
+                    Button(L10n.settingsAdd(language)) {
                         if viewModel.addSubstackFeed(urlString: newFeedURL, category: newFeedCategory) {
                             newFeedURL = ""
                         } else {
@@ -78,11 +81,12 @@ struct SettingsView: View {
                     .disabled(newFeedURL.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
-            .navigationTitle(isVietnamese ? "Cài đặt" : "Settings")
+            .navigationTitle(L10n.settingsTitle(language))
             .alert(
-                isVietnamese ? "Địa chỉ không hợp lệ" : "Invalid URL",
+                L10n.settingsInvalidURLTitle(language),
                 isPresented: $showInvalidURLAlert
             ) {
+                // "OK" is used as-is in both languages.
                 Button("OK", role: .cancel) {}
             }
         }
@@ -96,7 +100,6 @@ struct SettingsView: View {
     }
 
     private var intervalLabel: String {
-        let minutes = Int(viewModel.refreshInterval / 60)
-        return isVietnamese ? "Mỗi \(minutes) phút" : "Every \(minutes) minutes"
+        L10nPlural.settingsInterval(language, count: Int(viewModel.refreshInterval / 60))
     }
 }
