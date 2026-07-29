@@ -47,14 +47,23 @@ enum Tokens {
         static let xxl: CGFloat = 24
     }
 
-    /// Five steps, no more. Sizes are relative so they scale with the reader's text size.
+    /// Five steps, no more.
+    ///
+    /// Built on text styles rather than fixed point sizes. `Font.system(size:)` does not scale
+    /// with Dynamic Type in SwiftUI, so an earlier version of these tokens silently switched off
+    /// text scaling everywhere they were used. The line limits still adapted, which made the
+    /// result look plausible in a screenshot while the type never actually grew.
+    ///
+    /// The chosen styles sit within half a point of the sizes the design was drawn at: title2 is
+    /// 22 against a drawn 21, headline 17 against 17.5, subheadline 15, footnote 13 against 13.5,
+    /// and caption2 11.
     enum Typography {
-        static let headline = Font.system(size: 17.5, weight: .semibold)
-        static let lead = Font.system(size: 21, weight: .semibold)
-        static let summary = Font.system(size: 13.5)
-        static let category = Font.system(size: 15)
+        static let lead = Font.system(.title2, weight: .semibold)
+        static let headline = Font.system(.headline, weight: .semibold)
+        static let category = Font.system(.subheadline)
+        static let summary = Font.system(.footnote)
         /// Source marks and timestamps. Tracked and uppercased at the call site.
-        static let meta = Font.system(size: 11, weight: .semibold)
+        static let meta = Font.system(.caption2, weight: .semibold)
     }
 
     enum Radius {

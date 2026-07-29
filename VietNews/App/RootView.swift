@@ -20,6 +20,9 @@ struct RootView: View {
                 Label(L10n.tabSettings(feedViewModel.language), systemImage: "gearshape")
             }
         }
+        // The last system blue on screen. Without this the strip and the tab bar disagree about
+        // what the app's accent colour is.
+        .tint(Tokens.Palette.accent)
         .safeAreaInset(edge: .top, spacing: 0) {
             if !networkMonitor.isOnline {
                 Text(L10n.bannerOffline(feedViewModel.language))

@@ -6,6 +6,7 @@ import Foundation
 /// a case here and a line to each table, which fails loudly in tests if a translation is missing
 /// rather than silently falling back to the key.
 enum L10n: String, CaseIterable {
+    case appName = "app.name"
     case tabFeed = "tab.feed"
     case tabSettings = "tab.settings"
 
