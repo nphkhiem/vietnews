@@ -27,10 +27,18 @@ targets:
         SWIFT_VERSION: "5.9"
         PRODUCT_BUNDLE_IDENTIFIER: com.khiemnph.vietnews
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # iPhone only, chosen rather than inherited. The feed, the masthead and the lead story
+        # are laid out for one column; on iPad the default would have shipped a stretched phone
+        # layout that nobody designed.
+        TARGETED_DEVICE_FAMILY: "1"
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
     info:
       path: VietNews/Info.plist
       properties:
         CFBundleDisplayName: "Thông Tấn Xã"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         UILaunchScreen: {}
         NYT_API_KEY: "$(NYT_API_KEY)"
         UIApplicationSceneManifest:

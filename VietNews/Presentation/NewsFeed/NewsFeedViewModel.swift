@@ -230,15 +230,13 @@ final class NewsFeedViewModel: ObservableObject {
         }
     }
 
+    /// Defers to the one classifier rather than restating it. Only the two cases that genuinely
+    /// describe no source failure stay here: a cache write going wrong is not a source being
+    /// broken, and neither is an error that was never a `NewsError`.
     private func cause(of error: Error) -> SourceFailureCause? {
         switch error as? NewsError {
-        case .allSourcesFailed(_, let cause): return cause
-        case .sourceTimeout: return .timedOut
-        case .invalidResponse: return .rejected
-        case .rateLimited: return .rateLimited
-        case .parsingFailed: return .unparseable
-        case .networkUnavailable: return .unreachable
-        case .cacheFailed, .none: return nil
+        case .none, .cacheFailed: return nil
+        case .some(let newsError): return SourceFailureCause(newsError)
         }
     }
 }
