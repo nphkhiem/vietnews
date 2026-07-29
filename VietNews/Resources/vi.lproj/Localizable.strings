@@ -40,7 +40,6 @@
 "settings.add" = "Thêm";
 "settings.invalidURL.title" = "Địa chỉ không hợp lệ";
 
-"settings.section.reading" = "Đọc tin";
 "settings.section.storage" = "Bộ nhớ";
 "settings.section.about" = "Giới thiệu";
 "storage.cached" = "Đã lưu %@ tin tức";

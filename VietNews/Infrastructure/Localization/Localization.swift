@@ -50,7 +50,6 @@ enum L10n: String, CaseIterable {
     case settingsCategory = "settings.category"
     case settingsAdd = "settings.add"
     case settingsInvalidURLTitle = "settings.invalidURL.title"
-    case settingsSectionReading = "settings.section.reading"
     case settingsSectionStorage = "settings.section.storage"
     case settingsSectionAbout = "settings.section.about"
     case storageCached = "storage.cached"

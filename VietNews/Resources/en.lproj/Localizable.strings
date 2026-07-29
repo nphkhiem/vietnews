@@ -40,7 +40,6 @@
 "settings.add" = "Add";
 "settings.invalidURL.title" = "Invalid URL";
 
-"settings.section.reading" = "Reading";
 "settings.section.storage" = "Storage";
 "settings.section.about" = "About";
 "storage.cached" = "%@ of articles cached";

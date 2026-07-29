@@ -13,7 +13,8 @@ struct SettingsView: View {
                 MastheadView(title: L10n.settingsTitle(language))
                 ScrollView {
                     VStack(spacing: 0) {
-                        reading
+                        languageSetting
+                        maxArticles
                         refresh
                         subscriptions
                         more
@@ -34,35 +35,40 @@ struct SettingsView: View {
         }
     }
 
-    /// Reading comes first, and language first within it, because it is the preference that
-    /// changes everything else on the screen.
-    private var reading: some View {
-        SettingsGroup(title: L10n.settingsSectionReading(language)) {
-            SettingsField(title: L10n.settingsSectionLanguage(language)) {
-                SegmentedControl(
-                    options: Language.allCases,
-                    // Deliberately untranslated. A language is always listed in its own name, so
-                    // a reader who cannot read the current one can still find theirs.
-                    title: { $0 == .vietnamese ? "Tiếng Việt" : "English" },
-                    identifier: { "settings.language.\($0.rawValue)" },
-                    selection: languageBinding
-                )
-            }
+    /// Language comes first because it is the preference that changes everything else on the
+    /// screen.
+    ///
+    /// Its own group rather than a labelled field inside a "Reading" one. The screen used to
+    /// carry two kinds of label: uppercase tracked headings for groups, and sentence case labels
+    /// for the fields under them, which read as two competing title styles on one screen. Every
+    /// section is a heading and its control now.
+    private var languageSetting: some View {
+        SettingsGroup(title: L10n.settingsSectionLanguage(language)) {
+            SegmentedControl(
+                options: Language.allCases,
+                // Deliberately untranslated. A language is always listed in its own name, so
+                // a reader who cannot read the current one can still find theirs.
+                title: { $0 == .vietnamese ? "Tiếng Việt" : "English" },
+                identifier: { "settings.language.\($0.rawValue)" },
+                selection: languageBinding
+            )
+            .padding(.horizontal, Tokens.Space.l)
+        }
+    }
 
-            SettingsField(title: L10n.settingsSectionMaxArticles(language)) {
-                SegmentedControl(
-                    options: SettingsViewModel.articleCountOptions,
-                    title: { "\($0)" },
-                    selection: $viewModel.maxArticles
-                )
-            }
+    private var maxArticles: some View {
+        SettingsGroup(title: L10n.settingsSectionMaxArticles(language)) {
+            SegmentedControl(
+                options: SettingsViewModel.articleCountOptions,
+                title: { "\($0)" },
+                selection: $viewModel.maxArticles
+            )
+            .padding(.horizontal, Tokens.Space.l)
         }
     }
 
     private var refresh: some View {
         SettingsGroup(title: L10n.settingsSectionAutoRefresh(language)) {
-            // No field label: the group heading already says "Auto-refresh", and repeating it
-            // directly beneath was the same words twice.
             SegmentedControl(
                 options: SettingsViewModel.refreshIntervalOptions,
                 title: { Self.intervalLabel(for: $0, language: language) },
