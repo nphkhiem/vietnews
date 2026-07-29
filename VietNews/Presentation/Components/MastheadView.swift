@@ -12,8 +12,10 @@ struct MastheadView: View {
 
     var body: some View {
         Text(title.uppercased())
-            .font(Tokens.Typography.meta)
-            .tracking(2.2)
+            // A step up from the metadata size the rest of the app uses for small tracked text.
+            // The nameplate is the one place where being slightly louder is the point.
+            .font(Tokens.Typography.masthead)
+            .tracking(2.6)
             .foregroundStyle(Tokens.Palette.ink)
             .lineLimit(1)
             .frame(maxWidth: .infinity)

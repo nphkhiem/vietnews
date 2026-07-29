@@ -64,6 +64,9 @@ enum Tokens {
         static let summary = Font.system(.footnote)
         /// Source marks and timestamps. Tracked and uppercased at the call site.
         static let meta = Font.system(.caption2, weight: .semibold)
+        /// The nameplate. A step above metadata, because it is the one element allowed to
+        /// announce itself.
+        static let masthead = Font.system(.footnote, weight: .bold)
     }
 
     enum Radius {
