@@ -18,7 +18,7 @@ struct SettingsView: View {
                     subscriptions
                     more
                 }
-                .padding(.bottom, Tokens.Space.xxl)
+                .padding(.bottom, Tokens.Space.xxxl)
             }
             .background(Tokens.Palette.background)
             .navigationTitle(L10n.settingsTitle(language))
@@ -32,13 +32,8 @@ struct SettingsView: View {
     /// Reading comes first, and language first within it, because it is the preference that
     /// changes everything else on the screen.
     private var reading: some View {
-        VStack(spacing: Tokens.Space.m) {
-            SettingsGroupLabel(title: L10n.settingsSectionReading(language))
-
-            VStack(alignment: .leading, spacing: Tokens.Space.s) {
-                Text(L10n.settingsSectionLanguage(language))
-                    .font(Tokens.Typography.summary)
-                    .foregroundStyle(Tokens.Palette.inkSecondary)
+        SettingsGroup(title: L10n.settingsSectionReading(language)) {
+            SettingsField(title: L10n.settingsSectionLanguage(language)) {
                 SegmentedControl(
                     options: Language.allCases,
                     // Deliberately untranslated. A language is always listed in its own name, so
@@ -48,28 +43,21 @@ struct SettingsView: View {
                     selection: languageBinding
                 )
             }
-            .padding(.horizontal, Tokens.Space.l)
 
-            VStack(alignment: .leading, spacing: Tokens.Space.s) {
-                Text(L10n.settingsSectionMaxArticles(language))
-                    .font(Tokens.Typography.summary)
-                    .foregroundStyle(Tokens.Palette.inkSecondary)
+            SettingsField(title: L10n.settingsSectionMaxArticles(language)) {
                 SegmentedControl(
                     options: SettingsViewModel.articleCountOptions,
                     title: { "\($0)" },
                     selection: $viewModel.maxArticles
                 )
             }
-            .padding(.horizontal, Tokens.Space.l)
         }
     }
 
     private var refresh: some View {
-        // The group label applies its own horizontal padding, so it sits outside this stack's.
-        // Nesting it inside doubled the inset and left this one heading further in than the rest.
-        VStack(alignment: .leading, spacing: 0) {
-            SettingsGroupLabel(title: L10n.settingsSectionAutoRefresh(language))
-
+        SettingsGroup(title: L10n.settingsSectionAutoRefresh(language)) {
+            // Same rhythm as a `SettingsField`, but the interval is the slider's live readout
+            // rather than a static label, so it keeps the primary reading colour.
             VStack(alignment: .leading, spacing: Tokens.Space.s) {
                 Text(intervalLabel)
                     .font(Tokens.Typography.category)
@@ -79,29 +67,24 @@ struct SettingsView: View {
             }
             .padding(.horizontal, Tokens.Space.l)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var subscriptions: some View {
-        VStack(spacing: 0) {
-            SettingsGroupLabel(title: L10n.settingsSectionSubstack(language))
-
-            ForEach(viewModel.substackFeeds, id: \.url) { feed in
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(feed.url.host ?? feed.url.absoluteString)
-                            .font(Tokens.Typography.category)
-                            .foregroundStyle(Tokens.Palette.ink)
-                        Text(feed.category.displayName(in: language))
-                            .font(Tokens.Typography.summary)
-                            .foregroundStyle(Tokens.Palette.inkTertiary)
-                    }
-                    Spacer(minLength: 0)
+        SettingsGroup(title: L10n.settingsSectionSubstack(language)) {
+            // A list reads as one block, so its rows sit flush and are separated by rule rather
+            // than by the gap the group uses between fields.
+            VStack(spacing: 0) {
+                ForEach(viewModel.substackFeeds, id: \.url) { feed in
+                    SettingsLabelledRow(
+                        title: feed.url.host ?? feed.url.absoluteString,
+                        detail: feed.category.displayName(in: language)
+                    )
+                    Divider().overlay(Tokens.Palette.hairline)
                 }
-                .padding(.horizontal, Tokens.Space.l)
-                .frame(minHeight: 52)
             }
 
+            // The add form needs no label of its own: the placeholder already says what the
+            // field is, and the group heading says what it adds to.
             VStack(alignment: .leading, spacing: Tokens.Space.s) {
                 TextField(L10n.settingsSubstackURLPlaceholder(language), text: $newFeedURL)
                     .textInputAutocapitalization(.never)
@@ -129,7 +112,11 @@ struct SettingsView: View {
                 .foregroundStyle(newFeedURL.trimmingCharacters(in: .whitespaces).isEmpty
                     ? Tokens.Palette.inkTertiary
                     : Tokens.Palette.accent)
-                .frame(minHeight: 44)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .overlay(
+                    RoundedRectangle(cornerRadius: Tokens.Radius.image)
+                        .stroke(Tokens.Palette.hairline, lineWidth: 1)
+                )
                 .disabled(newFeedURL.trimmingCharacters(in: .whitespaces).isEmpty)
             }
             .padding(.horizontal, Tokens.Space.l)
@@ -140,15 +127,15 @@ struct SettingsView: View {
     /// absent until ticket 29 builds the screen behind it, on the same reasoning that kept the
     /// search affordance out of the masthead.
     private var more: some View {
-        VStack(spacing: 0) {
-            SettingsGroupLabel(title: L10n.settingsSectionAbout(language))
-
-            SettingsLinkRow(title: L10n.settingsSectionStorage(language)) {
-                StorageView(language: language, cacheRepository: viewModel.cacheRepository)
-            }
-            Divider().overlay(Tokens.Palette.hairline)
-            SettingsLinkRow(title: L10n.settingsSectionAbout(language)) {
-                AboutView(language: language)
+        SettingsGroup(title: L10n.settingsSectionAbout(language)) {
+            VStack(spacing: 0) {
+                SettingsLinkRow(title: L10n.settingsSectionStorage(language)) {
+                    StorageView(language: language, cacheRepository: viewModel.cacheRepository)
+                }
+                Divider().overlay(Tokens.Palette.hairline)
+                SettingsLinkRow(title: L10n.settingsSectionAbout(language)) {
+                    AboutView(language: language)
+                }
             }
         }
     }

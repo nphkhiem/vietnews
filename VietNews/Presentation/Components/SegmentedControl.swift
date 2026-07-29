@@ -52,6 +52,40 @@ struct SegmentedControl<Value: Hashable>: View {
     }
 }
 
+/// A title with an optional supporting line beneath, at the one row height this screen uses.
+/// Every list row on the settings screen is this, so the rows keep the same rhythm whether or
+/// not they lead anywhere.
+struct SettingsLabelledRow: View {
+    let title: String
+    var detail: String?
+    var showsChevron = false
+
+    var body: some View {
+        HStack(spacing: Tokens.Space.m) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(Tokens.Typography.category)
+                    .foregroundStyle(Tokens.Palette.ink)
+                if let detail {
+                    Text(detail)
+                        .font(Tokens.Typography.summary)
+                        .foregroundStyle(Tokens.Palette.inkTertiary)
+                }
+            }
+            Spacer(minLength: 0)
+            if showsChevron {
+                Image(systemName: "chevron.right")
+                    .font(Tokens.Typography.summary.weight(.semibold))
+                    .foregroundStyle(Tokens.Palette.inkTertiary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .padding(.horizontal, Tokens.Space.l)
+        .frame(minHeight: 52)
+        .contentShape(Rectangle())
+    }
+}
+
 /// A labelled row that pushes to another screen.
 struct SettingsLinkRow<Destination: View>: View {
     let title: String
@@ -60,44 +94,51 @@ struct SettingsLinkRow<Destination: View>: View {
 
     var body: some View {
         NavigationLink(destination: destination) {
-            HStack(spacing: Tokens.Space.m) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(Tokens.Typography.category)
-                        .foregroundStyle(Tokens.Palette.ink)
-                    if let detail {
-                        Text(detail)
-                            .font(Tokens.Typography.summary)
-                            .foregroundStyle(Tokens.Palette.inkTertiary)
-                    }
-                }
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right")
-                    .font(Tokens.Typography.summary.weight(.semibold))
-                    .foregroundStyle(Tokens.Palette.inkTertiary)
-                    .accessibilityHidden(true)
-            }
-            .padding(.horizontal, Tokens.Space.l)
-            .frame(minHeight: 52)
-            .contentShape(Rectangle())
+            SettingsLabelledRow(title: title, detail: detail, showsChevron: true)
         }
         .buttonStyle(.plain)
     }
 }
 
-/// A small uppercase heading above a group, matching the source marks used on the feed.
-struct SettingsGroupLabel: View {
+/// A group of settings under a small uppercase heading, matching the source marks on the feed.
+///
+/// This owns every vertical gap on the settings screen: `Space.l` between the heading and the
+/// fields and between one field and the next, `Space.xxxl` between one group and the next. When
+/// the individual views each carried a slice of their own spacing instead, the gaps disagreed
+/// from group to group and one heading ended up indented further than the rest.
+struct SettingsGroup<Content: View>: View {
     let title: String
+    @ViewBuilder let content: () -> Content
 
     var body: some View {
-        Text(title.uppercased())
-            .font(Tokens.Typography.meta)
-            .tracking(0.8)
-            .foregroundStyle(Tokens.Palette.inkTertiary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, Tokens.Space.l)
-            .padding(.top, Tokens.Space.xl)
-            .padding(.bottom, Tokens.Space.s)
-            .accessibilityAddTraits(.isHeader)
+        VStack(alignment: .leading, spacing: Tokens.Space.l) {
+            Text(title.uppercased())
+                .font(Tokens.Typography.meta)
+                .tracking(0.8)
+                .foregroundStyle(Tokens.Palette.inkTertiary)
+                .padding(.horizontal, Tokens.Space.l)
+                .accessibilityAddTraits(.isHeader)
+
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, Tokens.Space.xxxl)
+    }
+}
+
+/// A label above the control it describes, held closer to it than groups are held to each other
+/// so the pairing is read from the spacing alone.
+struct SettingsField<Content: View>: View {
+    let title: String
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Tokens.Space.s) {
+            Text(title)
+                .font(Tokens.Typography.summary)
+                .foregroundStyle(Tokens.Palette.inkSecondary)
+            content()
+        }
+        .padding(.horizontal, Tokens.Space.l)
     }
 }
