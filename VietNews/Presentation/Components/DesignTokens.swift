@@ -48,6 +48,9 @@ enum Tokens {
         static let l: CGFloat = 16
         static let xl: CGFloat = 20
         static let xxl: CGFloat = 24
+        /// The separation between one group of settings and the next. A step clear of `xxl` so
+        /// that a gap between groups can never be mistaken for a gap inside one.
+        static let xxxl: CGFloat = 32
     }
 
     /// Five steps, no more.
