@@ -127,6 +127,19 @@ final class FeedUITests: XCTestCase {
         XCTAssertFalse(app.buttons[A11y.subscribeAction].isEnabled)
     }
 
+    /// Search reads the cache and nothing else, so with an empty cache it reports no matches
+    /// rather than an error. Nothing went wrong; there is simply nothing there by that name.
+    func test_givenNothingCached_whenSearching_thenItReportsNoMatchesRatherThanAnError() {
+        app.buttons[A11y.mastheadSearch].tap()
+
+        let field = app.textFields[A11y.searchField]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText("chelsea")
+
+        XCTAssertTrue(app.staticTexts[A11y.searchNoMatches].waitForExistence(timeout: 5))
+    }
+
     // MARK: - Helpers
 
     private enum PickerLanguage: String {
@@ -166,4 +179,7 @@ enum A11y {
     static let subscribeAddress = "subscribe.address"
     static let subscribeProblem = "subscribe.problem"
     static let subscribeAction = "subscribe.action"
+    static let mastheadSearch = "masthead.search"
+    static let searchField = "search.field"
+    static let searchNoMatches = "search.noMatches"
 }

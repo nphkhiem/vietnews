@@ -11,6 +11,8 @@ struct ArticleRowView: View {
     /// The mark answers "is this saved?", which is only worth asking in a list where some are
     /// and some are not. In the saved list every row would carry it and it would say nothing.
     var showsSavedMark: Bool = true
+    /// The term to mark in the headline, when this row is a search result.
+    var highlight: String?
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -66,7 +68,7 @@ struct ArticleRowView: View {
     // A read headline changes colour only. Nothing moves, so a refreshed feed does not reflow
     // under the reader.
     private var headline: some View {
-        Text(article.title)
+        Text(highlighted(article.title))
             .font(Tokens.Typography.headline)
             .lineSpacing(Tokens.Layout.headlineLineSpacing)
             .foregroundStyle(isRead ? Tokens.Palette.inkRead : Tokens.Palette.ink)
@@ -118,6 +120,20 @@ struct ArticleRowView: View {
 
     private var accessibilityLabel: String {
         ArticleAccessibility.label(for: article, language: language, isRead: isRead)
+    }
+
+    /// Marks the matched term by weight and colour rather than by colour alone, so the match is
+    /// still visible to a reader who cannot distinguish the accent.
+    private func highlighted(_ text: String) -> AttributedString {
+        var attributed = AttributedString(text)
+        guard let highlight, !highlight.isEmpty else { return attributed }
+
+        for range in text.searchRanges(of: highlight) {
+            guard let target = Range(range, in: attributed) else { continue }
+            attributed[target].foregroundColor = Tokens.Palette.accent
+            attributed[target].inlinePresentationIntent = .stronglyEmphasized
+        }
+        return attributed
     }
 }
 

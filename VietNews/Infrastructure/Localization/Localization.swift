@@ -76,6 +76,11 @@ enum L10n: String, CaseIterable {
     case sourcesLastWorkedNever = "sources.lastWorked.never"
     case sourcesNotInLanguage = "sources.notInLanguage"
     case sourcesManage = "sources.manage"
+    case searchTitle = "search.title"
+    case searchPlaceholder = "search.placeholder"
+    case searchHint = "search.hint"
+    case searchNoMatches = "search.noMatches"
+
     case sourcesAdd = "sources.add"
     case sourcesAddDetail = "sources.add.detail"
 

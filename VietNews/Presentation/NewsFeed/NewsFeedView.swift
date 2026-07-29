@@ -9,18 +9,24 @@ struct NewsFeedView: View {
     /// feed's own view model.
     let makeSourcesViewModel: (Language) -> SourcesViewModel
     let makeSubscriptionViewModel: () -> FeedSubscriptionViewModel
+    let makeSearchViewModel: (Language) -> SearchViewModel
     @ObservedObject var savedArticles: SavedArticleStore
     /// One presentation for the list rather than one per row and one per destination, so the
     /// context menu and the accessibility action reach the same place.
     @State private var presentation: ArticlePresentation?
     @State private var isShowingSources = false
+    @State private var isShowingSearch = false
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Fixed furniture: the masthead and the strip do not scroll away with the news.
-                MastheadView(title: L10n.appName(viewModel.language))
+                MastheadView(
+                    title: L10n.appName(viewModel.language),
+                    searchLabel: L10n.searchTitle(viewModel.language),
+                    onSearch: { isShowingSearch = true }
+                )
                 CategoryStrip(
                     categories: NewsCategory.allCases.filter { $0.isAvailable(in: viewModel.language) },
                     selected: viewModel.selectedCategory,
@@ -40,6 +46,14 @@ struct NewsFeedView: View {
             // The stock bar is replaced by the masthead rather than restyled, so it is hidden
             // outright. The stack stays because the banner pushes Sources from here.
             .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(isPresented: $isShowingSearch) {
+                SearchView(
+                    language: viewModel.language,
+                    thumbnailLoader: viewModel.thumbnailLoader,
+                    savedArticles: savedArticles,
+                    makeViewModel: { makeSearchViewModel(viewModel.language) }
+                )
+            }
             .navigationDestination(isPresented: $isShowingSources) {
                 SourcesView(
                     language: viewModel.language,
