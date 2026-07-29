@@ -89,9 +89,10 @@ enum Tokens {
         static let thumbnailSide: CGFloat = 64
         /// Vietnamese stacks diacritics above and below, which a tighter leading clips.
         static let headlineLineSpacing: CGFloat = 2
-        /// The underline marking the selected category. Thicker than a hairline on purpose: at
-        /// two points it read as a rendering artefact next to the one point rule beneath the
-        /// strip rather than as the thing carrying the selection.
-        static let selectionRule: CGFloat = 3
+        /// The underline marking the selected category. Deliberately heavy: at two points it
+        /// read as a rendering artefact next to the one point rule beneath the strip rather than
+        /// as the thing carrying the selection, and three was still closer to that rule than to
+        /// the weight of the label above it.
+        static let selectionRule: CGFloat = 4
     }
 }
