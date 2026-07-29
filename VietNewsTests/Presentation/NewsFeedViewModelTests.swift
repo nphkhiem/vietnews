@@ -41,6 +41,7 @@ final class NewsFeedViewModelTests: XCTestCase {
             preferences: preferences,
             scheduler: scheduler,
             thumbnailLoader: StubThumbnailLoader(),
+            readArticles: ReadArticleStore(defaults: defaults),
             now: { self.fixedNow },
             isOnline: { isOnline }
         )
@@ -398,5 +399,40 @@ final class NewsFeedViewModelTests: XCTestCase {
         await sut.setLanguage(.english)
 
         XCTAssertEqual(sut.selectedCategory, .finance)
+    }
+
+    func test_givenAnArticleIsOpened_whenMarked_thenItIsReadImmediatelyAndWrittenDown() {
+        let sut = makeSUT()
+        let article = TestFactory.article(url: "https://example.com/read-me")
+
+        sut.markRead(article)
+
+        XCTAssertTrue(sut.readArticleIDs.contains(article.id))
+        XCTAssertTrue(ReadArticleStore(defaults: defaults).readIDs.contains(article.id))
+    }
+
+    /// A view model built at the next launch starts from what the reader already read, rather
+    /// than from an empty set.
+    func test_givenArticlesReadBefore_whenTheViewModelIsBuilt_thenTheyAreAlreadyMarked() {
+        let store = ReadArticleStore(defaults: defaults)
+        store.markRead("https://example.com/earlier")
+
+        XCTAssertTrue(makeSUT().readArticleIDs.contains("https://example.com/earlier"))
+    }
+
+    /// Read state is keyed by the article, so a refresh that reorders the feed cannot lose it.
+    func test_givenTheFeedReorders_whenRefreshed_thenReadStateFollowsTheArticle() async {
+        let first = TestFactory.article(url: "https://example.com/1", publishedAt: Date(timeIntervalSince1970: 10))
+        let second = TestFactory.article(url: "https://example.com/2", publishedAt: Date(timeIntervalSince1970: 20))
+        articleRepo.result = .success(FetchResult(articles: [second, first], failedSources: []))
+        let sut = makeSUT()
+        await sut.start()
+        sut.markRead(first)
+
+        articleRepo.result = .success(FetchResult(articles: [first, second], failedSources: []))
+        await sut.refresh()
+
+        XCTAssertTrue(sut.readArticleIDs.contains(first.id))
+        XCTAssertFalse(sut.readArticleIDs.contains(second.id))
     }
 }

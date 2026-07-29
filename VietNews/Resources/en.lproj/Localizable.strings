@@ -10,6 +10,7 @@
 "feed.sourcesUnavailable" = "Some sources unavailable";
 "feed.sourcesUnavailableNamed" = "%@ unavailable";
 "feed.empty" = "No articles in this category";
+"feed.loading" = "Loading the feed";
 "feed.retry" = "Retry";
 "feed.lastUpdated" = "Last updated %@";
 

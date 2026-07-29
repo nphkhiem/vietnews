@@ -88,6 +88,41 @@ final class DesignTokenContrastTests: XCTestCase {
         try assertContrast("caution", on: "bg", atLeast: 3.0)
     }
 
+    /// Writes the measured table out with the results, so the audit is a record produced by
+    /// every run rather than a number somebody wrote down once and stopped checking.
+    func test_givenEveryTextAndBackgroundPair_whenMeasured_thenTheTableIsRecorded() throws {
+        let foregrounds = [
+            "ink", "inkSecondary", "inkTertiary", "inkRead", "accent", "caution",
+            "sourceVNExpress", "sourceNYT", "sourceBBC", "sourceSubstack", "sourceEurogamer"
+        ]
+        var lines = ["foreground,background,appearance,ratio"]
+
+        for background in ["bg", "surface"] {
+            for foreground in foregrounds {
+                for dark in [true, false] {
+                    let measured = ratio(
+                        try color(foreground, dark: dark),
+                        on: try color(background, dark: dark)
+                    )
+                    lines.append(
+                        "\(foreground),\(background),\(dark ? "dark" : "light"),\(String(format: "%.2f", measured))"
+                    )
+                }
+            }
+        }
+        for dark in [true, false] {
+            let measured = ratio(try color("onAccent", dark: dark), on: try color("accent", dark: dark))
+            lines.append("onAccent,accent,\(dark ? "dark" : "light"),\(String(format: "%.2f", measured))")
+        }
+
+        let record = XCTAttachment(string: lines.joined(separator: "\n"))
+        record.name = "contrast-audit.csv"
+        record.lifetime = .keepAlways
+        add(record)
+
+        XCTAssertEqual(lines.count, foregrounds.count * 2 * 2 + 2 + 1)
+    }
+
     func test_givenEveryToken_whenResolvedInBothAppearances_thenTheyActuallyDiffer() throws {
         let names = ["bg", "surface", "hairline", "ink", "inkSecondary", "inkTertiary", "inkRead", "accent", "caution"]
         for name in names {

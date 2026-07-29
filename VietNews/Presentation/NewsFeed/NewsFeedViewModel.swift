@@ -22,8 +22,8 @@ final class NewsFeedViewModel: ObservableObject {
     /// A failure that happened while articles were already on screen. Previously such a failure
     /// produced no feedback at all: the reader pulled to refresh and nothing happened.
     @Published private(set) var refreshFailureMessage: String?
-    /// Articles the reader has opened this session. Ticket 23 makes this survive relaunch; the
-    /// treatment itself is verifiable without persistence.
+    /// Articles the reader has opened, across launches. A feed that reorders on every refresh
+    /// would otherwise present the same headlines as new each time.
     @Published private(set) var readArticleIDs: Set<String> = []
 
     /// Held here rather than resolved inside the row, so a row stays a plain value type that a
@@ -34,6 +34,7 @@ final class NewsFeedViewModel: ObservableObject {
     private let refreshNews: RefreshNewsUseCase
     private let preferences: UserPreferences
     private let scheduler: RefreshScheduling
+    private let readArticles: ReadArticleStore
     private let now: () -> Date
     private let isOnline: () -> Bool
     private var isSchedulerArmed = false
@@ -46,6 +47,7 @@ final class NewsFeedViewModel: ObservableObject {
         preferences: UserPreferences,
         scheduler: RefreshScheduling,
         thumbnailLoader: ThumbnailLoading,
+        readArticles: ReadArticleStore,
         now: @escaping () -> Date = Date.init,
         isOnline: @escaping () -> Bool = { true }
     ) {
@@ -54,9 +56,11 @@ final class NewsFeedViewModel: ObservableObject {
         self.thumbnailLoader = thumbnailLoader
         self.preferences = preferences
         self.scheduler = scheduler
+        self.readArticles = readArticles
         self.now = now
         self.isOnline = isOnline
         self.language = preferences.language
+        self.readArticleIDs = readArticles.readIDs
     }
 
     /// Arms the auto-refresh timer and performs the initial load. The view calls this both when
@@ -67,8 +71,11 @@ final class NewsFeedViewModel: ObservableObject {
         await load()
     }
 
+    /// Written before the article opens, so returning to the list finds it already marked even
+    /// if the reader never comes back to it.
     func markRead(_ article: Article) {
-        readArticleIDs.insert(article.id)
+        readArticles.markRead(article.id)
+        readArticleIDs = readArticles.readIDs
     }
 
     func stop() {

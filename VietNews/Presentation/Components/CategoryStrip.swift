@@ -11,6 +11,9 @@ struct CategoryStrip: View {
     let language: Language
     let onSelect: (NewsCategory) -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
@@ -32,7 +35,13 @@ struct CategoryStrip: View {
                     .frame(height: 1)
             }
             .onChange(of: selected) { newValue in
-                withAnimation { proxy.scrollTo(newValue, anchor: .center) }
+                // Still scrolls, just without the slide. Reduce Motion asks for the movement to
+                // go away, not for the strip to stop following the selection.
+                if reduceMotion {
+                    proxy.scrollTo(newValue, anchor: .center)
+                } else {
+                    withAnimation { proxy.scrollTo(newValue, anchor: .center) }
+                }
             }
         }
         // The label still grows with the reader's text size, but not without limit. Uncapped it
@@ -67,13 +76,22 @@ struct CategoryStrip: View {
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
+    /// Under Reduce Transparency the gradient becomes a solid edge. The fade exists to say there
+    /// is more to the side, and it can say that opaquely; a reader who asked for no see-through
+    /// surfaces should not be given a label dissolving into the background instead.
     private var edgeFade: some View {
-        LinearGradient(
-            colors: [Tokens.Palette.background.opacity(0), Tokens.Palette.background],
-            startPoint: .leading,
-            endPoint: .trailing
-        )
-        .frame(width: 36)
+        Group {
+            if reduceTransparency {
+                Tokens.Palette.background
+            } else {
+                LinearGradient(
+                    colors: [Tokens.Palette.background.opacity(0), Tokens.Palette.background],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            }
+        }
+        .frame(width: reduceTransparency ? 16 : 36)
         .allowsHitTesting(false)
     }
 }

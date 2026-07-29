@@ -15,6 +15,7 @@ enum L10n: String, CaseIterable {
     case feedSourcesUnavailableNamed = "feed.sourcesUnavailableNamed"
     case feedEmptyHint = "feed.emptyHint"
     case feedEmpty = "feed.empty"
+    case feedLoading = "feed.loading"
     case feedRetry = "feed.retry"
     case feedLastUpdated = "feed.lastUpdated"
 
