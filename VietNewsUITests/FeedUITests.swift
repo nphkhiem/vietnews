@@ -83,6 +83,32 @@ final class FeedUITests: XCTestCase {
         XCTAssertTrue(app.switches.firstMatch.exists)
     }
 
+    /// Saving must not cost the reader their place: it happens from the feed, without the
+    /// article opening.
+    func test_givenAnArticleInTheFeed_whenSavedFromItsMenu_thenItAppearsInSavedWithoutOpening() {
+        let row = app.buttons[A11y.feedRow(category: "hotNews", index: 0)]
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+
+        row.press(forDuration: 1.2)
+        let save = app.buttons[A11y.articleSaveAction]
+        XCTAssertTrue(save.waitForExistence(timeout: 5))
+        save.tap()
+
+        // Still on the feed. Nothing was pushed or presented over it.
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+
+        openSaved()
+        XCTAssertTrue(app.buttons[A11y.savedRow(index: 0)].waitForExistence(timeout: 5))
+    }
+
+    func test_givenNothingSaved_whenOpeningSaved_thenItExplainsHowToSave() {
+        openSaved()
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)[A11y.savedEmpty].waitForExistence(timeout: 5)
+        )
+    }
+
     // MARK: - Helpers
 
     private enum PickerLanguage: String {
@@ -91,6 +117,10 @@ final class FeedUITests: XCTestCase {
     }
 
     private func openSettings() {
+        app.tabBars.buttons.element(boundBy: 2).tap()
+    }
+
+    private func openSaved() {
         app.tabBars.buttons.element(boundBy: 1).tap()
     }
 
@@ -111,4 +141,7 @@ enum A11y {
 
     static func feedCategory(_ rawValue: String) -> String { "feed.category.\(rawValue)" }
     static func feedRow(category: String, index: Int) -> String { "feed.row.\(category).\(index)" }
+    static func savedRow(index: Int) -> String { "saved.row.\(index)" }
+    static let savedEmpty = "saved.empty"
+    static let articleSaveAction = "article.action.save"
 }

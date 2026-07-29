@@ -8,7 +8,11 @@ struct NewsFeedView: View {
     /// Built here rather than passed in, so the banner's route to Sources needs nothing from the
     /// feed's own view model.
     let makeSourcesViewModel: (Language) -> SourcesViewModel
+    @ObservedObject var savedArticles: SavedArticleStore
     @State private var presentedArticle: Article?
+    /// One share sheet for the list rather than one per row, so the context menu and the
+    /// accessibility action both reach the same presentation.
+    @State private var sharedArticle: Article?
     @State private var isShowingSources = false
     @Environment(\.scenePhase) private var scenePhase
 
@@ -56,6 +60,9 @@ struct NewsFeedView: View {
         .sheet(item: $presentedArticle) { article in
             SafariView(url: article.url)
                 .ignoresSafeArea()
+        }
+        .sheet(item: $sharedArticle) { article in
+            ShareSheet(url: article.url)
         }
     }
 
@@ -140,7 +147,7 @@ struct NewsFeedView: View {
                             isRead: viewModel.readArticleIDs.contains(article.id),
                             accessibilityIdentifier: "feed.row.\(article.category.rawValue).\(index)",
                             thumbnailLoader: viewModel.thumbnailLoader,
-                            onOpen: { open(article) }
+                            actions: actions(for: article)
                         )
                     } else {
                         ArticleRowView(
@@ -149,7 +156,7 @@ struct NewsFeedView: View {
                             isRead: viewModel.readArticleIDs.contains(article.id),
                             accessibilityIdentifier: "feed.row.\(article.category.rawValue).\(index)",
                             thumbnailLoader: viewModel.thumbnailLoader,
-                            onOpen: { open(article) }
+                            actions: actions(for: article)
                         )
                     }
                     Divider()
@@ -158,6 +165,17 @@ struct NewsFeedView: View {
             }
         }
         .refreshable { await viewModel.refresh() }
+    }
+
+    /// Saving from the feed never opens the article, which is the point: keeping something for
+    /// later should not cost the reader their place in the list.
+    private func actions(for article: Article) -> ArticleActionSet {
+        ArticleActionSet(
+            isSaved: savedArticles.isSaved(article.id),
+            onToggleSave: { savedArticles.toggle(article) },
+            onShare: { sharedArticle = article },
+            onOpen: { open(article) }
+        )
     }
 
     private func open(_ article: Article) {

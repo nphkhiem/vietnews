@@ -76,3 +76,13 @@
 "sources.lastWorked.never" = "Chưa hoạt động lần nào.";
 "sources.notInLanguage" = "Không có nội dung tiếng này";
 "sources.manage" = "Quản lý";
+
+/* Saved */
+"tab.saved" = "Đã lưu";
+"saved.title" = "Đã lưu";
+"saved.empty" = "Chưa lưu tin nào.";
+"saved.emptyHint" = "Nhấn giữ một tin trong danh sách để lưu lại đọc sau.";
+"action.save" = "Lưu";
+"action.unsave" = "Bỏ lưu";
+"action.share" = "Chia sẻ";
+"action.open" = "Mở";

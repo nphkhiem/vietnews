@@ -20,6 +20,13 @@ extension Container {
         self { ReadArticleStore() }.singleton
     }
 
+    /// A singleton for the same reason as the read store, and because the feed and the saved tab
+    /// both observe it: two instances would show each other's saves as missing.
+    @MainActor
+    var savedArticleStore: Factory<SavedArticleStore> {
+        self { SavedArticleStore() }.singleton
+    }
+
     var vnexpressSource: Factory<NewsSourceAdapter> {
         self { VNExpressSource.make(network: self.networkService(), parser: FeedKitRSSParser(parsingSource: .vnexpress)) }
     }
