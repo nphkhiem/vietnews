@@ -4,6 +4,7 @@ import SwiftUI
 struct RootView: View {
     @StateObject private var networkMonitor = Container.shared.networkMonitor()
     @StateObject private var feedViewModel = Container.shared.newsFeedViewModel()
+    @StateObject private var savedArticles = Container.shared.savedArticleStore()
 
     var body: some View {
         TabView {
@@ -12,11 +13,21 @@ struct RootView: View {
                 isOffline: !networkMonitor.isOnline,
                 makeSourcesViewModel: { language in
                     Container.shared.settingsViewModel().makeSourcesViewModel(language: language)
-                }
+                },
+                savedArticles: savedArticles
             )
                 .tabItem {
                     Label(L10n.tabFeed(feedViewModel.language), systemImage: "newspaper")
                 }
+
+            SavedView(
+                store: savedArticles,
+                language: feedViewModel.language,
+                thumbnailLoader: feedViewModel.thumbnailLoader
+            )
+            .tabItem {
+                Label(L10n.tabSaved(feedViewModel.language), systemImage: "bookmark")
+            }
 
             SettingsView(
                 viewModel: Container.shared.settingsViewModel(),

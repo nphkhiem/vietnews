@@ -8,7 +8,16 @@ import Foundation
 enum L10n: String, CaseIterable {
     case appName = "app.name"
     case tabFeed = "tab.feed"
+    case tabSaved = "tab.saved"
     case tabSettings = "tab.settings"
+
+    case savedTitle = "saved.title"
+    case savedEmpty = "saved.empty"
+    case savedEmptyHint = "saved.emptyHint"
+    case actionSave = "action.save"
+    case actionUnsave = "action.unsave"
+    case actionShare = "action.share"
+    case actionOpen = "action.open"
 
     case bannerOffline = "banner.offline"
     case feedSourcesUnavailable = "feed.sourcesUnavailable"

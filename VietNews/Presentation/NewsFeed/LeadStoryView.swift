@@ -10,7 +10,7 @@ struct LeadStoryView: View {
     let isRead: Bool
     let accessibilityIdentifier: String
     let thumbnailLoader: ThumbnailLoading
-    let onOpen: () -> Void
+    let actions: ArticleActionSet
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// An image that cannot be loaded is treated exactly like an article that never had one, so
@@ -20,7 +20,7 @@ struct LeadStoryView: View {
     private var showsImage: Bool { article.imageURL != nil && !imageFailed }
 
     var body: some View {
-        Button(action: onOpen) {
+        Button(action: actions.onOpen) {
             VStack(alignment: .leading, spacing: 0) {
                 if let imageURL = article.imageURL, !imageFailed {
                     // Full bleed, and 16:9 because that is the ratio the sources publish, so
@@ -36,7 +36,7 @@ struct LeadStoryView: View {
                 }
 
                 VStack(alignment: .leading, spacing: Tokens.Space.xs + 1) {
-                    SourceLine(article: article, language: language, isRead: isRead)
+                    SourceLine(article: article, language: language, isRead: isRead, isSaved: actions.isSaved)
 
                     Text(article.title)
                         .font(Tokens.Typography.lead)
@@ -58,6 +58,7 @@ struct LeadStoryView: View {
         .accessibilityIdentifier(accessibilityIdentifier)
         .accessibilityLabel(ArticleAccessibility.label(for: article, language: language, isRead: isRead))
         .accessibilityAddTraits(.isButton)
+        .articleActions(language: language, actions: actions)
     }
 
     @ViewBuilder

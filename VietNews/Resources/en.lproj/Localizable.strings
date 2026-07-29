@@ -76,3 +76,13 @@
 "sources.lastWorked.never" = "Has never worked.";
 "sources.notInLanguage" = "Nothing in this language";
 "sources.manage" = "Manage";
+
+/* Saved */
+"tab.saved" = "Saved";
+"saved.title" = "Saved";
+"saved.empty" = "Nothing saved yet.";
+"saved.emptyHint" = "Press and hold an article in the feed to keep it here for later.";
+"action.save" = "Save";
+"action.unsave" = "Remove from saved";
+"action.share" = "Share";
+"action.open" = "Open";

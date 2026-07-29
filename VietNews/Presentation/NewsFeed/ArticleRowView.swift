@@ -7,12 +7,15 @@ struct ArticleRowView: View {
     /// Stable handle for UI tests, so a query never depends on localized copy.
     let accessibilityIdentifier: String
     let thumbnailLoader: ThumbnailLoading
-    let onOpen: () -> Void
+    let actions: ArticleActionSet
+    /// The mark answers "is this saved?", which is only worth asking in a list where some are
+    /// and some are not. In the saved list every row would carry it and it would say nothing.
+    var showsSavedMark: Bool = true
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        Button(action: onOpen) {
+        Button(action: actions.onOpen) {
             VStack(alignment: .leading, spacing: Tokens.Space.xs + 1) {
                 // The image sits beside the source line and headline only. Running it down the
                 // whole row narrowed the summary for its entire height and left a ragged notch
@@ -28,7 +31,12 @@ struct ArticleRowView: View {
                     }
 
                     VStack(alignment: .leading, spacing: Tokens.Space.xs + 1) {
-                        SourceLine(article: article, language: language, isRead: isRead)
+                        SourceLine(
+                            article: article,
+                            language: language,
+                            isRead: isRead,
+                            isSaved: actions.isSaved && showsSavedMark
+                        )
                         headline
                     }
                     Spacer(minLength: 0)
@@ -52,6 +60,7 @@ struct ArticleRowView: View {
         .accessibilityIdentifier(accessibilityIdentifier)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityAddTraits(.isButton)
+        .articleActions(language: language, actions: actions)
     }
 
     // A read headline changes colour only. Nothing moves, so a refreshed feed does not reflow
@@ -117,9 +126,20 @@ struct SourceLine: View {
     let article: Article
     let language: Language
     let isRead: Bool
+    var isSaved: Bool = false
 
     var body: some View {
         HStack(spacing: Tokens.Space.s) {
+            // Saving confirms itself by the row changing rather than by a message that appears
+            // and then has to go away again. Hidden from assistive technology because the row's
+            // own label already says it, and the save action already names what it will do.
+            if isSaved {
+                Image(systemName: "bookmark.fill")
+                    .font(Tokens.Typography.meta)
+                    .foregroundStyle(Tokens.Palette.accent)
+                    .accessibilityHidden(true)
+            }
+
             // Uppercase and tracked, so a source is recognisable by its shape before it is read
             // and is never distinguished by colour alone.
             Text(article.source.displayName.uppercased())
