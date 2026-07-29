@@ -39,6 +39,15 @@
 "settings.add" = "Add";
 "settings.invalidURL.title" = "Invalid URL";
 
+"settings.section.reading" = "Reading";
+"settings.section.storage" = "Storage";
+"settings.section.about" = "About";
+"storage.cached" = "%@ of articles cached";
+"storage.clear" = "Clear cached articles";
+"storage.explain" = "Cached articles are what the app shows when you have no connection. Clearing them frees space and the feed refills on the next refresh.";
+"about.version" = "Version %@";
+"about.apiKeyNotice" = "This app ships with a New York Times API key inside it. Anyone with a copy of the app can read that key, so treat it as public rather than secret.";
+
 /* Categories */
 "category.hotNews" = "Hot News";
 "category.sport" = "Sport";

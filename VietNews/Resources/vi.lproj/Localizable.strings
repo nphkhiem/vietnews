@@ -39,6 +39,15 @@
 "settings.add" = "Thêm";
 "settings.invalidURL.title" = "Địa chỉ không hợp lệ";
 
+"settings.section.reading" = "Đọc tin";
+"settings.section.storage" = "Bộ nhớ";
+"settings.section.about" = "Giới thiệu";
+"storage.cached" = "Đã lưu %@ tin tức";
+"storage.clear" = "Xoá tin đã lưu";
+"storage.explain" = "Tin đã lưu là những gì ứng dụng hiển thị khi không có kết nối. Xoá đi sẽ giải phóng dung lượng và tin sẽ được tải lại ở lần làm mới kế tiếp.";
+"about.version" = "Phiên bản %@";
+"about.apiKeyNotice" = "Ứng dụng có kèm sẵn khoá API của New York Times bên trong. Bất kỳ ai có bản sao ứng dụng đều đọc được khoá này, nên hãy xem nó là công khai chứ không phải bí mật.";
+
 /* Categories */
 "category.hotNews" = "Tin nóng";
 "category.sport" = "Thể thao";

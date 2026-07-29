@@ -64,14 +64,14 @@ final class FeedUITests: XCTestCase {
     func test_givenFeedShown_whenSelectingSettingsTab_thenSettingsScreenAppears() {
         openSettings()
 
-        XCTAssertTrue(app.segmentedControls[A11y.settingsLanguagePicker].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons[A11y.settingsLanguageSegment("vi")].waitForExistence(timeout: 5))
     }
 
     // MARK: - Helpers
 
-    private enum PickerLanguage: Int {
-        case vietnamese = 0
-        case english = 1
+    private enum PickerLanguage: String {
+        case vietnamese = "vi"
+        case english = "en"
     }
 
     private func openSettings() {
@@ -79,9 +79,9 @@ final class FeedUITests: XCTestCase {
     }
 
     private func selectLanguage(_ language: PickerLanguage) {
-        let picker = app.segmentedControls[A11y.settingsLanguagePicker]
-        XCTAssertTrue(picker.waitForExistence(timeout: 5))
-        picker.buttons.element(boundBy: language.rawValue).tap()
+        let segment = app.buttons[A11y.settingsLanguageSegment(language.rawValue)]
+        XCTAssertTrue(segment.waitForExistence(timeout: 5))
+        segment.tap()
     }
 }
 
@@ -89,7 +89,7 @@ final class FeedUITests: XCTestCase {
 /// bundle needs no import of the app, and so a copy or localization change can never break a
 /// query.
 enum A11y {
-    static let settingsLanguagePicker = "settings.language.picker"
+    static func settingsLanguageSegment(_ code: String) -> String { "settings.language.\(code)" }
 
     static func feedCategory(_ rawValue: String) -> String { "feed.category.\(rawValue)" }
     static func feedRow(category: String, index: Int) -> String { "feed.row.\(category).\(index)" }

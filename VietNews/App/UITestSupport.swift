@@ -30,6 +30,7 @@ enum UITestSupport {
             func save(_ entry: CachedArticles, category: NewsCategory, language: Language) throws {}
             func load(category: NewsCategory, language: Language) -> CachedArticles? { nil }
             func clearAll() throws {}
+            func totalSizeInBytes() -> Int { 0 }
         }
 
         Container.shared.articleRepository.register { StubArticleRepository() }
