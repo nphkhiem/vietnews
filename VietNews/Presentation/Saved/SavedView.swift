@@ -9,8 +9,7 @@ struct SavedView: View {
     let language: Language
     let thumbnailLoader: ThumbnailLoading
 
-    @State private var presentedArticle: Article?
-    @State private var sharedArticle: Article?
+    @State private var presentation: ArticlePresentation?
 
     var body: some View {
         NavigationStack {
@@ -22,13 +21,7 @@ struct SavedView: View {
             .background(Tokens.Palette.background)
             .toolbar(.hidden, for: .navigationBar)
         }
-        .sheet(item: $presentedArticle) { article in
-            SafariView(url: article.url)
-                .ignoresSafeArea()
-        }
-        .sheet(item: $sharedArticle) { article in
-            ShareSheet(url: article.url)
-        }
+        .articlePresentation($presentation)
     }
 
     @ViewBuilder
@@ -71,8 +64,8 @@ struct SavedView: View {
         ArticleActionSet(
             isSaved: true,
             onToggleSave: { store.remove(id: article.id) },
-            onShare: { sharedArticle = article },
-            onOpen: { presentedArticle = article }
+            onShare: { presentation = .share(article) },
+            onOpen: { presentation = .reader(article) }
         )
     }
 }

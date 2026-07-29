@@ -9,10 +9,9 @@ struct NewsFeedView: View {
     /// feed's own view model.
     let makeSourcesViewModel: (Language) -> SourcesViewModel
     @ObservedObject var savedArticles: SavedArticleStore
-    @State private var presentedArticle: Article?
-    /// One share sheet for the list rather than one per row, so the context menu and the
-    /// accessibility action both reach the same presentation.
-    @State private var sharedArticle: Article?
+    /// One presentation for the list rather than one per row and one per destination, so the
+    /// context menu and the accessibility action reach the same place.
+    @State private var presentation: ArticlePresentation?
     @State private var isShowingSources = false
     @Environment(\.scenePhase) private var scenePhase
 
@@ -57,13 +56,7 @@ struct NewsFeedView: View {
                 break
             }
         }
-        .sheet(item: $presentedArticle) { article in
-            SafariView(url: article.url)
-                .ignoresSafeArea()
-        }
-        .sheet(item: $sharedArticle) { article in
-            ShareSheet(url: article.url)
-        }
+        .articlePresentation($presentation)
     }
 
     @ViewBuilder
@@ -173,14 +166,14 @@ struct NewsFeedView: View {
         ArticleActionSet(
             isSaved: savedArticles.isSaved(article.id),
             onToggleSave: { savedArticles.toggle(article) },
-            onShare: { sharedArticle = article },
+            onShare: { presentation = .share(article) },
             onOpen: { open(article) }
         )
     }
 
     private func open(_ article: Article) {
         viewModel.markRead(article)
-        presentedArticle = article
+        presentation = .reader(article)
     }
 
     /// Both states are scrollable so pull to refresh works from them. Previously each was a
