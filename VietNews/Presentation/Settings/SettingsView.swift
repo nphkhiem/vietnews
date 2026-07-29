@@ -9,17 +9,21 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    reading
-                    refresh
-                    subscriptions
-                    more
+            VStack(spacing: 0) {
+                MastheadView(title: L10n.settingsTitle(language))
+                ScrollView {
+                    VStack(spacing: 0) {
+                        reading
+                        refresh
+                        subscriptions
+                        more
+                    }
+                    .padding(.bottom, Tokens.Space.xxxl)
                 }
-                .padding(.bottom, Tokens.Space.xxxl)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Tokens.Palette.background)
-            .navigationTitle(L10n.settingsTitle(language))
+            .toolbar(.hidden, for: .navigationBar)
         }
         .sheet(isPresented: $isAddingFeed) {
             FeedSubscriptionSheet(

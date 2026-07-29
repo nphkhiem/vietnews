@@ -11,6 +11,15 @@ struct FeedSubscriptionSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                MastheadView(
+                    title: L10n.subscribeTitle(language),
+                    leading: MastheadView.Action(
+                        label: L10n.subscribeCancel(language),
+                        identifier: "subscribe.cancel",
+                        perform: onFinished
+                    )
+                )
+
                 ScrollView {
                     VStack(alignment: .leading, spacing: Tokens.Space.l) {
                         addressField
@@ -26,14 +35,7 @@ struct FeedSubscriptionSheet: View {
                 primaryAction
             }
             .background(Tokens.Palette.background)
-            .navigationTitle(L10n.subscribeTitle(language))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(L10n.subscribeCancel(language), action: onFinished)
-                        .foregroundStyle(Tokens.Palette.accent)
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .onAppear { addressFocused = true }
     }

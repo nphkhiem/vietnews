@@ -109,3 +109,4 @@
 "search.hint" = "Searching %@ articles already on this device.";
 "search.noMatches" = "No matches.";
 "settings.refresh.off" = "Off";
+"common.back" = "Back";

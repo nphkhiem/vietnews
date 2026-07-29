@@ -152,6 +152,19 @@ final class FeedUITests: XCTestCase {
         XCTAssertTrue(off.isSelected)
     }
 
+    /// Every screen title is the masthead now, so a pushed screen carries its own back control
+    /// rather than the navigation bar it replaced.
+    func test_givenAPushedScreen_whenGoingBack_thenTheMastheadCarriesTheWayOut() {
+        openSettings()
+        app.buttons[A11y.settingsSources].tap()
+        let back = app.buttons[A11y.mastheadBack]
+        XCTAssertTrue(back.waitForExistence(timeout: 5))
+
+        back.tap()
+
+        XCTAssertTrue(app.buttons[A11y.settingsSources].waitForExistence(timeout: 5))
+    }
+
     // MARK: - Helpers
 
     private enum PickerLanguage: String {
@@ -192,6 +205,7 @@ enum A11y {
     static let subscribeProblem = "subscribe.problem"
     static let subscribeAction = "subscribe.action"
     static let mastheadSearch = "masthead.search"
+    static let mastheadBack = "masthead.back"
     static let searchField = "search.field"
     static let searchNoMatches = "search.noMatches"
     static func refreshSegment(seconds: Int) -> String { "settings.refresh.\(seconds)" }

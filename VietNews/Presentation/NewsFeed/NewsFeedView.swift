@@ -24,8 +24,9 @@ struct NewsFeedView: View {
                 // Fixed furniture: the masthead and the strip do not scroll away with the news.
                 MastheadView(
                     title: L10n.appName(viewModel.language),
-                    searchLabel: L10n.searchTitle(viewModel.language),
-                    onSearch: { isShowingSearch = true }
+                    trailing: .search(label: L10n.searchTitle(viewModel.language)) {
+                        isShowingSearch = true
+                    }
                 )
                 CategoryStrip(
                     categories: NewsCategory.allCases.filter { $0.isAvailable(in: viewModel.language) },

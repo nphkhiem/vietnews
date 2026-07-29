@@ -7,6 +7,7 @@ import Foundation
 /// rather than silently falling back to the key.
 enum L10n: String, CaseIterable {
     case appName = "app.name"
+    case commonBack = "common.back"
     case tabFeed = "tab.feed"
     case tabSaved = "tab.saved"
     case tabSettings = "tab.settings"
