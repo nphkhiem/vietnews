@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Screenshots/app-icon.png" width="96" alt="Thông Tấn Xã app icon">
+</p>
+
 <h1 align="center">Thông Tấn Xã</h1>
 
 <p align="center">

@@ -9,33 +9,41 @@ struct StorageView: View {
     let cacheRepository: CacheRepository
 
     @State private var sizeInBytes: Int = 0
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Tokens.Space.l) {
-            Text(L10n.storageCached(language, formattedSize))
-                .font(Tokens.Typography.category)
-                .foregroundStyle(Tokens.Palette.ink)
+        VStack(spacing: 0) {
+            MastheadView(
+                title: L10n.settingsSectionStorage(language),
+                leading: .back(label: L10n.commonBack(language)) { dismiss() }
+            )
 
-            Text(L10n.storageExplain(language))
-                .font(Tokens.Typography.summary)
-                .foregroundStyle(Tokens.Palette.inkSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: Tokens.Space.l) {
+                Text(L10n.storageCached(language, formattedSize))
+                    .font(Tokens.Typography.category)
+                    .foregroundStyle(Tokens.Palette.ink)
 
-            Button(L10n.storageClear(language)) {
-                try? cacheRepository.clearAll()
-                sizeInBytes = cacheRepository.totalSizeInBytes()
+                Text(L10n.storageExplain(language))
+                    .font(Tokens.Typography.summary)
+                    .foregroundStyle(Tokens.Palette.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Button(L10n.storageClear(language)) {
+                    try? cacheRepository.clearAll()
+                    sizeInBytes = cacheRepository.totalSizeInBytes()
+                }
+                .font(Tokens.Typography.category.weight(.semibold))
+                .foregroundStyle(Tokens.Palette.accent)
+                .frame(minHeight: 44)
+
+                Spacer()
             }
-            .font(Tokens.Typography.category.weight(.semibold))
-            .foregroundStyle(Tokens.Palette.accent)
-            .frame(minHeight: 44)
-
-            Spacer()
+            .padding(Tokens.Space.l)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(Tokens.Space.l)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Tokens.Palette.background)
-        .navigationTitle(L10n.settingsSectionStorage(language))
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear { sizeInBytes = cacheRepository.totalSizeInBytes() }
     }
 

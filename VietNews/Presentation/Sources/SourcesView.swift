@@ -14,6 +14,7 @@ struct SourcesView: View {
     let makeSubscriptionViewModel: () -> FeedSubscriptionViewModel
 
     @State private var isAddingFeed = false
+    @Environment(\.dismiss) private var dismiss
 
     init(
         language: Language,
@@ -26,7 +27,12 @@ struct SourcesView: View {
     }
 
     var body: some View {
-        ScrollView {
+        VStack(spacing: 0) {
+            MastheadView(
+                title: L10n.sourcesTitle(language),
+                leading: .back(label: L10n.commonBack(language)) { dismiss() }
+            )
+            ScrollView {
             VStack(spacing: 0) {
                 if !viewModel.failing.isEmpty {
                     SettingsGroup(title: L10n.sourcesSectionAttention(language)) {
@@ -59,11 +65,12 @@ struct SourcesView: View {
                     }
                 }
             }
-            .padding(.bottom, Tokens.Space.xxxl)
+                .padding(.bottom, Tokens.Space.xxxl)
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Tokens.Palette.background)
-        .navigationTitle(L10n.sourcesTitle(language))
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $isAddingFeed) {
             FeedSubscriptionSheet(
                 viewModel: makeSubscriptionViewModel(),

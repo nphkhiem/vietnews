@@ -109,3 +109,4 @@
 "search.hint" = "Đang tìm trong %@ tin đã có trên máy.";
 "search.noMatches" = "Không có kết quả.";
 "settings.refresh.off" = "Tắt";
+"common.back" = "Quay lại";

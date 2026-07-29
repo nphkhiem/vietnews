@@ -9,6 +9,7 @@ struct SearchView: View {
 
     @State private var presentation: ArticlePresentation?
     @FocusState private var queryFocused: Bool
+    @Environment(\.dismiss) private var dismiss
 
     init(
         language: Language,
@@ -24,13 +25,16 @@ struct SearchView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            MastheadView(
+                title: L10n.searchTitle(language),
+                leading: .back(label: L10n.commonBack(language)) { dismiss() }
+            )
             field
             content
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Tokens.Palette.background)
-        .navigationTitle(L10n.searchTitle(language))
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .navigationBar)
         .articlePresentation($presentation)
         .onAppear {
             viewModel.load()
