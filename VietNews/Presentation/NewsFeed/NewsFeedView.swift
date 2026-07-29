@@ -8,7 +8,9 @@ struct NewsFeedView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                CategoryTabBar(
+                // Fixed furniture: the masthead and the strip do not scroll away with the news.
+                MastheadView(title: L10n.appName(viewModel.language))
+                CategoryStrip(
                     categories: NewsCategory.allCases.filter { $0.isAvailable(in: viewModel.language) },
                     selected: viewModel.selectedCategory,
                     language: viewModel.language,
@@ -18,8 +20,11 @@ struct NewsFeedView: View {
                 )
                 content
             }
-            .navigationTitle("Thông Tấn Xã")
-            .navigationBarTitleDisplayMode(.inline)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Tokens.Palette.background)
+            // The stock bar is replaced by the masthead rather than restyled, so it is hidden
+            // outright. The stack stays because later work pushes from here.
+            .toolbar(.hidden, for: .navigationBar)
         }
         .task { await viewModel.start() }
         .onChange(of: scenePhase) { phase in

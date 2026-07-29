@@ -1,3 +1,6 @@
+/* Identity. A proper noun, so the same in both languages. */
+"app.name" = "Thông Tấn Xã";
+
 /* Tab bar */
 "tab.feed" = "Tin tức";
 "tab.settings" = "Cài đặt";

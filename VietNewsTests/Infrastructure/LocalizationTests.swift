@@ -24,7 +24,8 @@ final class LocalizationTests: XCTestCase {
 
     /// Two languages resolving to the same text usually means one bundle is not being used.
     func test_givenTranslatableKeys_whenComparingLanguages_thenTheyActuallyDiffer() {
-        let sameInBothLanguages: Set<L10n> = [.settingsTitle, .settingsSectionLanguage]
+        // The nameplate is a proper noun and the settings words happen to be shared.
+        let sameInBothLanguages: Set<L10n> = [.appName, .settingsTitle, .settingsSectionLanguage]
 
         for key in L10n.allCases where !sameInBothLanguages.contains(key) {
             XCTAssertNotEqual(
