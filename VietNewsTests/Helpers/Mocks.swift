@@ -59,6 +59,8 @@ final class MockCacheRepository: CacheRepository {
         clearAllCallCount += 1
         stored.removeAll()
     }
+
+    func totalSizeInBytes() -> Int { stored.count * 1_024 }
 }
 
 actor StubNetworkService: NetworkService {

@@ -112,7 +112,8 @@ extension Container {
         self {
             SettingsViewModel(
                 preferences: self.userPreferences(),
-                scheduler: self.refreshScheduler()
+                scheduler: self.refreshScheduler(),
+                cacheRepository: self.cacheRepository()
             )
         }.singleton
     }

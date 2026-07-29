@@ -36,6 +36,18 @@ final class DiskCacheRepository: CacheRepository {
         return try? decoder.decode(CachedArticles.self, from: data)
     }
 
+    func totalSizeInBytes() -> Int {
+        guard let entries = try? fileManager.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: [.fileSizeKey]
+        ) else { return 0 }
+
+        return entries.reduce(0) { total, url in
+            let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+            return total + size
+        }
+    }
+
     func clearAll() throws {
         guard fileManager.fileExists(atPath: directory.path) else { return }
         do {

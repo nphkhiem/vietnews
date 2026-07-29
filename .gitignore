@@ -4,3 +4,6 @@ xcuserdata/
 DerivedData/
 .build/
 Secrets.xcconfig
+.claude/settings.local.json
+.claude/worktrees/
+docs/

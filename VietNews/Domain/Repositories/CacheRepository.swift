@@ -46,4 +46,7 @@ protocol CacheRepository {
     func save(_ entry: CachedArticles, category: NewsCategory, language: Language) throws
     func load(category: NewsCategory, language: Language) -> CachedArticles?
     func clearAll() throws
+    /// Bytes currently held on disk. The cache existed for months with no way for a reader to
+    /// see it or clear it.
+    func totalSizeInBytes() -> Int
 }
