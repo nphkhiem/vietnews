@@ -8,9 +8,12 @@
 /* Feed status */
 "banner.offline" = "Offline. Showing saved news.";
 "feed.sourcesUnavailable" = "Some sources unavailable";
+"feed.sourcesUnavailableNamed" = "%@ unavailable";
 "feed.empty" = "No articles in this category";
 "feed.retry" = "Retry";
 "feed.lastUpdated" = "Last updated %@";
+
+"feed.emptyHint" = "Nothing has been published here recently.";
 
 /* Failure causes. Each one suggests a different next step, so they must stay distinct. */
 "error.offline" = "No internet connection. Check Wi-Fi or mobile data.";

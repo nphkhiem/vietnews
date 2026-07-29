@@ -8,9 +8,12 @@
 /* Feed status */
 "banner.offline" = "Ngoại tuyến. Đang hiển thị tin đã lưu.";
 "feed.sourcesUnavailable" = "Một số nguồn tin không khả dụng";
+"feed.sourcesUnavailableNamed" = "%@ không khả dụng";
 "feed.empty" = "Không có tin tức trong mục này";
 "feed.retry" = "Thử lại";
 "feed.lastUpdated" = "Cập nhật lần cuối %@";
+
+"feed.emptyHint" = "Chưa có tin mới trong mục này.";
 
 /* Failure causes. Each one suggests a different next step, so they must stay distinct. */
 "error.offline" = "Không có kết nối mạng. Kiểm tra Wi-Fi hoặc dữ liệu di động.";
