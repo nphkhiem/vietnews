@@ -30,6 +30,8 @@ extension SourceFailureCause {
             case .parsingFailed: self = .unparseable
             case .networkUnavailable: self = .unreachable
             case .allSourcesFailed(_, let cause): self = cause
+            // A response that is not HTTP cannot be read, which is what the reader is told.
+            case .nonHTTPResponse: self = .unparseable
             case .cacheFailed: self = .mixed
             }
         case let urlError as URLError:
@@ -51,6 +53,8 @@ enum NewsError: Error, Equatable {
     /// reader is never told a source failed that was never attempted, plus why they failed.
     case allSourcesFailed([NewsSource], cause: SourceFailureCause)
     case invalidResponse(statusCode: Int)
+    /// The response was not HTTP at all, so there is no status code to report.
+    case nonHTTPResponse
     /// The source is rate limiting us. Carries the delay the server asked for, when it stated one.
     case rateLimited(retryAfter: TimeInterval?)
     case sourceTimeout(NewsSource)

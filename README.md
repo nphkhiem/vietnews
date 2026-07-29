@@ -14,13 +14,20 @@ A centralized iOS news reader that pulls from multiple sources into one feed: NY
 
 ## Features
 
-- Aggregates NYT, BBC, VNExpress, Eurogamer, Substack, and any generic RSS/Atom feed into one timeline
+- Aggregates NYT, BBC, VNExpress, Eurogamer, Substack, and any generic RSS, Atom, or JSON feed into one timeline
 - Category tabs (Hot News, Sport, World, Finance, and more), with some categories only shown in the language they make sense for
 - Vietnamese and English localization, switchable at runtime from Settings
+- A Sources screen showing which sources are working, when each last succeeded, and a switch to turn any of them off
+- Save articles to their own tab, kept in full so they read with no connection
+- Long press an article to save, share, or open it, with the same actions available to VoiceOver
+- Read articles stay marked as read across launches
 - Configurable auto-refresh interval and max articles per category
 - Add your own Substack subscriptions by URL, no code changes needed
-- Disk cache with a TTL, so the feed still shows something useful when offline
+- Disk cache with a TTL, a size limit, and a schema version, so the feed still shows something useful when offline
 - Custom relative timestamps (minutes, hours, then a calendar date after 7 days)
+- Design tokens with a contrast audit recomputed from the shipped asset catalog on every test run, Dynamic Type throughout, and Reduce Motion and Reduce Transparency respected
+
+iPhone only. The layout is built for one column and the device family is set accordingly.
 
 ## Tech stack
 
@@ -74,6 +81,12 @@ open VietNews.xcodeproj
 ```
 
 ### Code highlight: bring your own API key
+
+> **The key is not secret at runtime.** It is injected into `Info.plist` and ships inside the app,
+> so anyone with a copy of a distributed build can read it out of the bundle in seconds. Keeping
+> it out of git protects the repository, not the key. Treat the bundled key as public: use a free
+> key you are willing to have exposed, and if this app ever needed a credential that actually
+> mattered, it would need a backend to hold it.
 
 The only credential the app needs is an NYT API key, and it's never committed to git. `Secrets.xcconfig` is gitignored, and `project.yml` injects it into `Info.plist` at generate time:
 

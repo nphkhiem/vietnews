@@ -1,6 +1,11 @@
 import Factory
 import Foundation
 
+// Debug only, and structurally so rather than by convention. This wipes the reader's
+// preferences and swaps the article repository for a stub whenever a launch argument says to,
+// which is exactly right for a test run and unacceptable in anything a reader installs. The
+// whole type is absent from a release build, so a release cannot call it even by mistake.
+#if DEBUG
 enum UITestSupport {
     static func configureIfNeeded() {
         guard ProcessInfo.processInfo.arguments.contains("-uiTesting") else { return }
@@ -37,3 +42,4 @@ enum UITestSupport {
         Container.shared.cacheRepository.register { NoOpCacheRepository() }
     }
 }
+#endif

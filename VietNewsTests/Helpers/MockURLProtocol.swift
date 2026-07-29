@@ -1,7 +1,9 @@
 import Foundation
 
 final class MockURLProtocol: URLProtocol {
-    static var handler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
+    /// Widened to `URLResponse` so a test can hand back something that is not HTTP, which is the
+    /// only way to exercise the branch that used to report a status code of -1.
+    static var handler: ((URLRequest) throws -> (URLResponse, Data))?
 
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
