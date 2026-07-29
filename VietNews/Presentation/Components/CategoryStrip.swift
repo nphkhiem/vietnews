@@ -65,7 +65,7 @@ struct CategoryStrip: View {
                 .overlay(alignment: .bottom) {
                     Rectangle()
                         .fill(isSelected ? Tokens.Palette.accent : .clear)
-                        .frame(height: 2)
+                        .frame(height: Tokens.Layout.selectionRule)
                 }
                 .contentShape(Rectangle())
         }
