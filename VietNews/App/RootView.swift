@@ -14,6 +14,9 @@ struct RootView: View {
                 makeSourcesViewModel: { language in
                     Container.shared.settingsViewModel().makeSourcesViewModel(language: language)
                 },
+                makeSubscriptionViewModel: {
+                    Container.shared.settingsViewModel().makeSubscriptionViewModel()
+                },
                 savedArticles: savedArticles
             )
                 .tabItem {

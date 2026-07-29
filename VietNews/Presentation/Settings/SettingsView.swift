@@ -3,9 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
     @ObservedObject var feedViewModel: NewsFeedViewModel
-    @State private var newFeedURL = ""
-    @State private var newFeedCategory: NewsCategory = .technology
-    @State private var showInvalidURLAlert = false
+    @State private var isAddingFeed = false
 
     private var language: Language { feedViewModel.language }
 
@@ -22,10 +20,13 @@ struct SettingsView: View {
             }
             .background(Tokens.Palette.background)
             .navigationTitle(L10n.settingsTitle(language))
-            .alert(L10n.settingsInvalidURLTitle(language), isPresented: $showInvalidURLAlert) {
-                // "OK" is used as-is in both languages.
-                Button("OK", role: .cancel) {}
-            }
+        }
+        .sheet(isPresented: $isAddingFeed) {
+            FeedSubscriptionSheet(
+                viewModel: viewModel.makeSubscriptionViewModel(),
+                language: language,
+                onFinished: { isAddingFeed = false }
+            )
         }
     }
 
@@ -81,45 +82,19 @@ struct SettingsView: View {
                     )
                     Divider().overlay(Tokens.Palette.hairline)
                 }
-            }
 
-            // The add form needs no label of its own: the placeholder already says what the
-            // field is, and the group heading says what it adds to.
-            VStack(alignment: .leading, spacing: Tokens.Space.s) {
-                TextField(L10n.settingsSubstackURLPlaceholder(language), text: $newFeedURL)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .keyboardType(.URL)
-                    .font(Tokens.Typography.category)
-                    .padding(Tokens.Space.m)
-                    .background(Tokens.Palette.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: Tokens.Radius.image))
-
-                SegmentedControl(
-                    options: [NewsCategory.work, .technology],
-                    title: { $0.displayName(in: language) },
-                    selection: $newFeedCategory
-                )
-
-                Button(L10n.settingsAdd(language)) {
-                    if viewModel.addSubstackFeed(urlString: newFeedURL, category: newFeedCategory) {
-                        newFeedURL = ""
-                    } else {
-                        showInvalidURLAlert = true
-                    }
+                // Adding is a task with a beginning and an end, so it opens a sheet rather than
+                // living as three loose controls with the confirm button below the fold.
+                Button { isAddingFeed = true } label: {
+                    SettingsLabelledRow(
+                        title: L10n.sourcesAdd(language),
+                        detail: L10n.sourcesAddDetail(language),
+                        showsChevron: true
+                    )
                 }
-                .font(Tokens.Typography.category.weight(.semibold))
-                .foregroundStyle(newFeedURL.trimmingCharacters(in: .whitespaces).isEmpty
-                    ? Tokens.Palette.inkTertiary
-                    : Tokens.Palette.accent)
-                .frame(maxWidth: .infinity, minHeight: 44)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Tokens.Radius.image)
-                        .stroke(Tokens.Palette.hairline, lineWidth: 1)
-                )
-                .disabled(newFeedURL.trimmingCharacters(in: .whitespaces).isEmpty)
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("settings.addFeed")
             }
-            .padding(.horizontal, Tokens.Space.l)
         }
     }
 
@@ -128,7 +103,11 @@ struct SettingsView: View {
         SettingsGroup(title: L10n.settingsSectionAbout(language)) {
             VStack(spacing: 0) {
                 SettingsLinkRow(title: L10n.sourcesTitle(language), identifier: "settings.sources") {
-                    SourcesView(language: language) { viewModel.makeSourcesViewModel(language: language) }
+                    SourcesView(
+                        language: language,
+                        makeSubscriptionViewModel: { viewModel.makeSubscriptionViewModel() },
+                        makeViewModel: { viewModel.makeSourcesViewModel(language: language) }
+                    )
                 }
                 Divider().overlay(Tokens.Palette.hairline)
                 SettingsLinkRow(title: L10n.settingsSectionStorage(language)) {

@@ -86,3 +86,19 @@
 "action.unsave" = "Remove from saved";
 "action.share" = "Share";
 "action.open" = "Open";
+
+/* Subscribing */
+"subscribe.title" = "Add a feed";
+"subscribe.address" = "Feed address";
+"subscribe.placeholder" = "example.com/feed";
+"subscribe.check" = "Check this feed";
+"subscribe.add" = "Add feed";
+"subscribe.cancel" = "Cancel";
+"subscribe.checking" = "Checking the address…";
+"subscribe.error.notAnAddress" = "That does not look like a web address.";
+"subscribe.error.insecure" = "Insecure addresses are blocked. Try the same address with https.";
+"subscribe.error.duplicate" = "You already follow this feed.";
+"subscribe.error.unreachable" = "Nothing answered at that address.";
+"subscribe.error.unreadable" = "That address answered, but it is not a feed this app can read.";
+"sources.add" = "Add a feed";
+"sources.add.detail" = "RSS, Atom, or JSON";

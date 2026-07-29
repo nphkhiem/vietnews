@@ -86,3 +86,19 @@
 "action.unsave" = "Bỏ lưu";
 "action.share" = "Chia sẻ";
 "action.open" = "Mở";
+
+/* Subscribing */
+"subscribe.title" = "Thêm nguồn tin";
+"subscribe.address" = "Địa chỉ nguồn tin";
+"subscribe.placeholder" = "example.com/feed";
+"subscribe.check" = "Kiểm tra nguồn tin";
+"subscribe.add" = "Thêm nguồn tin";
+"subscribe.cancel" = "Huỷ";
+"subscribe.checking" = "Đang kiểm tra địa chỉ…";
+"subscribe.error.notAnAddress" = "Đây không giống một địa chỉ web.";
+"subscribe.error.insecure" = "Địa chỉ không bảo mật bị chặn. Hãy thử lại với https.";
+"subscribe.error.duplicate" = "Bạn đã theo dõi nguồn tin này rồi.";
+"subscribe.error.unreachable" = "Không có phản hồi từ địa chỉ đó.";
+"subscribe.error.unreadable" = "Địa chỉ có phản hồi, nhưng ứng dụng không đọc được nội dung.";
+"sources.add" = "Thêm nguồn tin";
+"sources.add.detail" = "RSS, Atom hoặc JSON";

@@ -27,6 +27,10 @@ final class SettingsViewModel: ObservableObject {
     private let scheduler: RefreshScheduling
     private let sourceHealth: SourceHealthRepository
     private let serves: (NewsSource, NewsCategory) -> Bool
+    /// Held so the subscription sheet can prove an address is a feed before it is added, using
+    /// the same client and parser the fetch itself uses.
+    private let network: NetworkService
+    private let parser: RSSParsing
     /// Exposed so the storage screen can report and clear what is held, which is the only place
     /// in the app that can see the cache at all.
     let cacheRepository: CacheRepository
@@ -36,16 +40,36 @@ final class SettingsViewModel: ObservableObject {
         scheduler: RefreshScheduling,
         cacheRepository: CacheRepository,
         sourceHealth: SourceHealthRepository,
-        serves: @escaping (NewsSource, NewsCategory) -> Bool
+        serves: @escaping (NewsSource, NewsCategory) -> Bool,
+        network: NetworkService,
+        parser: RSSParsing
     ) {
         self.preferences = preferences
         self.scheduler = scheduler
         self.cacheRepository = cacheRepository
         self.sourceHealth = sourceHealth
         self.serves = serves
+        self.network = network
+        self.parser = parser
         self.refreshInterval = preferences.refreshInterval
         self.maxArticles = preferences.maxArticles
         self.substackFeeds = preferences.substackFeeds
+    }
+
+    /// Adding a feed is reachable from settings and from the sources screen, and both routes
+    /// build the same sheet.
+    func makeSubscriptionViewModel() -> FeedSubscriptionViewModel {
+        FeedSubscriptionViewModel(
+            network: network,
+            parser: parser,
+            existingFeeds: { [weak self] in self?.substackFeeds ?? [] },
+            commit: { [weak self] feed in self?.append(feed) }
+        )
+    }
+
+    private func append(_ feed: SubstackFeed) {
+        substackFeeds.append(feed)
+        preferences.substackFeeds = substackFeeds
     }
 
     /// The sources screen is reachable from here and from a failing-sources banner. Both routes

@@ -150,7 +150,9 @@ extension Container {
                 scheduler: self.refreshScheduler(),
                 cacheRepository: self.cacheRepository(),
                 sourceHealth: self.sourceHealthRepository(),
-                serves: self.sourceCoverage()
+                serves: self.sourceCoverage(),
+                network: self.networkService(),
+                parser: FeedKitRSSParser(parsingSource: .substack)
             )
         }.singleton
     }

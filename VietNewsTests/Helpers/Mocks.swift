@@ -80,7 +80,15 @@ actor StubNetworkService: NetworkService {
 final class StubRSSParser: RSSParsing {
     var items: [RSSItemDTO] = []
     var channelTitle: String?
-    func parse(_ data: Data) throws -> [RSSItemDTO] { items }
+    /// Lets a test hand back something that answered but is not a feed, which is a different
+    /// outcome from nothing answering at all.
+    var shouldThrow = false
+
+    func parse(_ data: Data) throws -> [RSSItemDTO] {
+        if shouldThrow { throw NewsError.parsingFailed(.substack) }
+        return items
+    }
+
     func channelTitle(in data: Data) -> String? { channelTitle }
 }
 
