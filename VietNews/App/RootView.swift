@@ -7,7 +7,13 @@ struct RootView: View {
 
     var body: some View {
         TabView {
-            NewsFeedView(viewModel: feedViewModel, isOffline: !networkMonitor.isOnline)
+            NewsFeedView(
+                viewModel: feedViewModel,
+                isOffline: !networkMonitor.isOnline,
+                makeSourcesViewModel: { language in
+                    Container.shared.settingsViewModel().makeSourcesViewModel(language: language)
+                }
+            )
                 .tabItem {
                     Label(L10n.tabFeed(feedViewModel.language), systemImage: "newspaper")
                 }

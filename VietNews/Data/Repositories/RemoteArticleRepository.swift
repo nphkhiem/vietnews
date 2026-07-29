@@ -5,21 +5,29 @@ final class RemoteArticleRepository: ArticleRepository {
     private let perSourceTimeout: TimeInterval
     private let maxArticles: () -> Int
     private let maxSourceShare: Double
+    private let health: SourceHealthRepository?
 
     init(
         adapters: [NewsSourceAdapter],
         perSourceTimeout: TimeInterval = 10,
         maxArticles: @escaping () -> Int = { 15 },
-        maxSourceShare: Double = 1.0 / 3.0
+        maxSourceShare: Double = 1.0 / 3.0,
+        health: SourceHealthRepository? = nil
     ) {
         self.adapters = adapters
         self.perSourceTimeout = perSourceTimeout
         self.maxArticles = maxArticles
         self.maxSourceShare = maxSourceShare
+        self.health = health
     }
 
     func fetchArticles(category: NewsCategory, language: Language) async throws -> FetchResult {
-        let applicable = adapters.filter { $0.supports(category: category, language: language) }
+        let health = self.health
+        // A source the reader switched off is never attempted, which is also what stops it
+        // contributing failures: it cannot appear in `failedSources` if it was never asked.
+        let applicable = adapters
+            .filter { health?.isEnabled(.builtIn($0.source)) ?? true }
+            .filter { $0.supports(category: category, language: language) }
         guard !applicable.isEmpty else {
             return FetchResult(articles: [], failedSources: [])
         }
@@ -48,13 +56,16 @@ final class RemoteArticleRepository: ArticleRepository {
         var articlesBySource: [[Article]] = []
         var failedSources: [NewsSource] = []
         var failures: [Error] = []
+        let now = Date()
         for (source, outcome) in outcomes {
             switch outcome {
             case .success(let articles):
                 articlesBySource.append(articles)
+                health?.recordSuccess(.builtIn(source), at: now, publicationTitle: nil)
             case .failure(let error):
                 failedSources.append(source)
                 failures.append(error)
+                health?.recordFailure(.builtIn(source), cause: SourceFailureCause(error))
             }
         }
 
@@ -133,33 +144,9 @@ final class RemoteArticleRepository: ArticleRepository {
     /// Collapses per-source errors into one cause. Sources rarely fail for different reasons at
     /// once, and when they do, saying so is more honest than picking a winner.
     private static func cause(of failures: [Error]) -> SourceFailureCause {
-        let causes = Set(failures.map(classify))
+        let causes = Set(failures.map(SourceFailureCause.init))
         guard causes.count == 1, let only = causes.first else { return .mixed }
         return only
-    }
-
-    private static func classify(_ error: Error) -> SourceFailureCause {
-        switch error {
-        case let newsError as NewsError:
-            switch newsError {
-            case .sourceTimeout: return .timedOut
-            case .invalidResponse: return .rejected
-            case .rateLimited: return .rateLimited
-            case .parsingFailed: return .unparseable
-            case .networkUnavailable: return .unreachable
-            case .allSourcesFailed(_, let cause): return cause
-            case .cacheFailed: return .mixed
-            }
-        case let urlError as URLError:
-            switch urlError.code {
-            case .timedOut: return .timedOut
-            case .notConnectedToInternet, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost:
-                return .unreachable
-            default: return .mixed
-            }
-        default:
-            return .mixed
-        }
     }
 
     private static func withTimeout<T: Sendable>(

@@ -79,7 +79,50 @@ actor StubNetworkService: NetworkService {
 
 final class StubRSSParser: RSSParsing {
     var items: [RSSItemDTO] = []
+    var channelTitle: String?
     func parse(_ data: Data) throws -> [RSSItemDTO] { items }
+    func channelTitle(in data: Data) -> String? { channelTitle }
+}
+
+/// In memory source health, so a test can put a source into any state without reaching
+/// `UserDefaults` or waiting for a fetch to fail.
+final class MockSourceHealthRepository: SourceHealthRepository, @unchecked Sendable {
+    private(set) var records: [String: SourceHealth] = [:]
+    private var disabled: Set<String> = []
+    private let lock = NSLock()
+
+    func health(for identity: SourceIdentity) -> SourceHealth {
+        lock.lock(); defer { lock.unlock() }
+        return records[identity.key] ?? .unknown
+    }
+
+    func recordSuccess(_ identity: SourceIdentity, at date: Date, publicationTitle: String?) {
+        lock.lock(); defer { lock.unlock() }
+        var record = records[identity.key] ?? .unknown
+        record.lastSucceededAt = date
+        record.lastFailure = nil
+        if let publicationTitle, !publicationTitle.isEmpty {
+            record.publicationTitle = publicationTitle
+        }
+        records[identity.key] = record
+    }
+
+    func recordFailure(_ identity: SourceIdentity, cause: SourceFailureCause) {
+        lock.lock(); defer { lock.unlock() }
+        var record = records[identity.key] ?? .unknown
+        record.lastFailure = cause
+        records[identity.key] = record
+    }
+
+    func isEnabled(_ identity: SourceIdentity) -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        return !disabled.contains(identity.key)
+    }
+
+    func setEnabled(_ isEnabled: Bool, for identity: SourceIdentity) {
+        lock.lock(); defer { lock.unlock() }
+        if isEnabled { disabled.remove(identity.key) } else { disabled.insert(identity.key) }
+    }
 }
 
 enum TestFactory {

@@ -123,12 +123,14 @@ struct SettingsView: View {
         }
     }
 
-    /// Storage and About are their own screens. Sources belongs here too and is deliberately
-    /// absent until ticket 29 builds the screen behind it, on the same reasoning that kept the
-    /// search affordance out of the masthead.
+    /// Sources, storage and about are each their own screen.
     private var more: some View {
         SettingsGroup(title: L10n.settingsSectionAbout(language)) {
             VStack(spacing: 0) {
+                SettingsLinkRow(title: L10n.sourcesTitle(language), identifier: "settings.sources") {
+                    SourcesView(language: language) { viewModel.makeSourcesViewModel(language: language) }
+                }
+                Divider().overlay(Tokens.Palette.hairline)
                 SettingsLinkRow(title: L10n.settingsSectionStorage(language)) {
                     StorageView(language: language, cacheRepository: viewModel.cacheRepository)
                 }

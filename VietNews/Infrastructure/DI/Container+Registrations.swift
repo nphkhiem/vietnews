@@ -22,12 +22,17 @@ extension Container {
         self { BBCSource.make(network: self.networkService(), parser: FeedKitRSSParser(parsingSource: .bbc)) }
     }
 
+    var sourceHealthRepository: Factory<SourceHealthRepository> {
+        self { DefaultsSourceHealthRepository() }.singleton
+    }
+
     var substackSource: Factory<NewsSourceAdapter> {
         self {
             SubstackSource(
                 network: self.networkService(),
                 parser: FeedKitRSSParser(parsingSource: .substack),
-                feeds: { self.userPreferences().substackFeeds }
+                feeds: { self.userPreferences().substackFeeds },
+                health: self.sourceHealthRepository()
             )
         }
     }
@@ -52,11 +57,27 @@ extension Container {
         }
     }
 
+    /// What each source covers, answered by the adapters themselves. The sources screen needs
+    /// this to say what turning a source off would cost, and deriving it here means the screen
+    /// cannot claim a coverage the fetch does not have.
+    var sourceCoverage: Factory<(NewsSource, NewsCategory) -> Bool> {
+        self {
+            let adapters = self.newsSourceAdapters()
+            return { source, category in
+                guard let adapter = adapters.first(where: { $0.source == source }) else { return false }
+                return Language.allCases.contains {
+                    adapter.supports(category: category, language: $0)
+                }
+            }
+        }
+    }
+
     var articleRepository: Factory<ArticleRepository> {
         self {
             RemoteArticleRepository(
                 adapters: self.newsSourceAdapters(),
-                maxArticles: { self.userPreferences().maxArticles }
+                maxArticles: { self.userPreferences().maxArticles },
+                health: self.sourceHealthRepository()
             )
         }.singleton
     }
@@ -113,7 +134,9 @@ extension Container {
             SettingsViewModel(
                 preferences: self.userPreferences(),
                 scheduler: self.refreshScheduler(),
-                cacheRepository: self.cacheRepository()
+                cacheRepository: self.cacheRepository(),
+                sourceHealth: self.sourceHealthRepository(),
+                serves: self.sourceCoverage()
             )
         }.singleton
     }

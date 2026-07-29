@@ -64,3 +64,14 @@
 
 /* Images */
 "thumbnail.retry" = "Reload image";
+
+/* Sources */
+"sources.title" = "Sources";
+"sources.section.attention" = "Needs attention";
+"sources.section.builtIn" = "Built in";
+"sources.section.yours" = "Your sources";
+"sources.updated" = "Updated %@";
+"sources.lastWorked" = "Last worked %@.";
+"sources.lastWorked.never" = "Has never worked.";
+"sources.notInLanguage" = "Nothing in this language";
+"sources.manage" = "Manage";

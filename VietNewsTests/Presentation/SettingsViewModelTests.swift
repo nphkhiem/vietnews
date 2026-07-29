@@ -24,7 +24,13 @@ final class SettingsViewModelTests: XCTestCase {
     }
 
     private func makeSUT() -> SettingsViewModel {
-        SettingsViewModel(preferences: preferences, scheduler: scheduler, cacheRepository: cacheRepo)
+        SettingsViewModel(
+            preferences: preferences,
+            scheduler: scheduler,
+            cacheRepository: cacheRepo,
+            sourceHealth: MockSourceHealthRepository(),
+            serves: { _, _ in true }
+        )
     }
 
     func test_givenStoredPreferences_whenInitializing_thenLoadsInitialValues() {

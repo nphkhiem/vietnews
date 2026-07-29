@@ -90,6 +90,9 @@ struct SettingsLabelledRow: View {
 struct SettingsLinkRow<Destination: View>: View {
     let title: String
     var detail: String?
+    /// Addressed by identifier rather than by title, so a test of the route does not break when
+    /// the copy or the language changes.
+    var identifier: String?
     @ViewBuilder let destination: () -> Destination
 
     var body: some View {
@@ -97,6 +100,7 @@ struct SettingsLinkRow<Destination: View>: View {
             SettingsLabelledRow(title: title, detail: detail, showsChevron: true)
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(identifier ?? "")
     }
 }
 

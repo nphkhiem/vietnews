@@ -5,7 +5,11 @@ struct NewsFeedView: View {
     /// Passed in rather than observed here, so connectivity has one owner and the feed simply
     /// renders what it is told.
     let isOffline: Bool
+    /// Built here rather than passed in, so the banner's route to Sources needs nothing from the
+    /// feed's own view model.
+    let makeSourcesViewModel: (Language) -> SourcesViewModel
     @State private var presentedArticle: Article?
+    @State private var isShowingSources = false
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -30,8 +34,13 @@ struct NewsFeedView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Tokens.Palette.background)
             // The stock bar is replaced by the masthead rather than restyled, so it is hidden
-            // outright. The stack stays because later work pushes from here.
+            // outright. The stack stays because the banner pushes Sources from here.
             .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(isPresented: $isShowingSources) {
+                SourcesView(language: viewModel.language) {
+                    makeSourcesViewModel(viewModel.language)
+                }
+            }
         }
         .task { await viewModel.start() }
         .onChange(of: scenePhase) { phase in
@@ -87,7 +96,14 @@ struct NewsFeedView: View {
                 StatusBanner(severity: .problem, message: message)
             }
             if !viewModel.failedSources.isEmpty {
-                StatusBanner(severity: .problem, message: unavailableMessage)
+                // The reader meets the problem and can act on it in the same breath. This is the
+                // same screen Settings reaches, not a second one, so nothing has two homes.
+                StatusBanner(
+                    severity: .problem,
+                    message: unavailableMessage,
+                    actionTitle: L10n.sourcesManage(viewModel.language),
+                    action: { isShowingSources = true }
+                )
             }
             if viewModel.isShowingStaleData, let updated = viewModel.lastUpdated {
                 StatusBanner(severity: .caution, message: staleLabel(updated))

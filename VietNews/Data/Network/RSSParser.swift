@@ -3,6 +3,14 @@ import Foundation
 
 protocol RSSParsing {
     func parse(_ data: Data) throws -> [RSSItemDTO]
+    /// The channel's own name, so a feed the reader added is listed as its publication rather
+    /// than as a hostname. Kept off `parse` because only the sources screen wants it, and it is
+    /// read once per feed and then remembered.
+    func channelTitle(in data: Data) -> String?
+}
+
+extension RSSParsing {
+    func channelTitle(in data: Data) -> String? { nil }
 }
 
 final class FeedKitRSSParser: RSSParsing {
@@ -34,6 +42,12 @@ final class FeedKitRSSParser: RSSParsing {
                 publishedAt: item.pubDate
             )
         }
+    }
+
+    func channelTitle(in data: Data) -> String? {
+        guard case .success(.rss(let feed)) = FeedParser(data: data).parse() else { return nil }
+        let title = feed.title?.strippingHTML().trimmingCharacters(in: .whitespacesAndNewlines)
+        return (title?.isEmpty ?? true) ? nil : title
     }
 
     /// Picks the best image an item offers.
