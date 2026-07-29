@@ -19,16 +19,36 @@ final class UserPreferencesTests: XCTestCase {
     }
 
     func test_givenNoStoredLanguage_whenReadingLanguage_thenDefaultsToVietnamese() {
-        XCTAssertEqual(sut.language, .vietnamese)
+        // given
+        // Nothing stored: `setUp` wipes the suite before every test.
+
+        // when
+        let language = sut.language
+
+        // then
+        XCTAssertEqual(language, .vietnamese)
     }
 
     func test_givenLanguageSet_whenReadingFromNewInstance_thenPersistsAcrossInstances() {
+        // given
         sut.language = .english
-        XCTAssertEqual(UserPreferences(defaults: defaults).language, .english)
+
+        // when
+        let reloaded = UserPreferences(defaults: defaults).language
+
+        // then
+        XCTAssertEqual(reloaded, .english)
     }
 
     func test_givenNoStoredInterval_whenReadingRefreshInterval_thenDefaultsTo300() {
-        XCTAssertEqual(sut.refreshInterval, 300)
+        // given
+        // Nothing stored, which is distinct from a stored zero meaning the reader turned it off.
+
+        // when
+        let interval = sut.refreshInterval
+
+        // then
+        XCTAssertEqual(interval, 300)
     }
 
     /// The interval is a choice from a list now rather than a point on a range, so an
@@ -36,19 +56,38 @@ final class UserPreferencesTests: XCTestCase {
     /// replaced the five to ten minute slider, which offered no real choice and could not be
     /// switched off.
     func test_givenAnIntervalNotOffered_whenSetting_thenItSnapsToTheDefault() {
-        sut.refreshInterval = 100
-        XCTAssertEqual(sut.refreshInterval, 300)
-        sut.refreshInterval = 10_000
-        XCTAssertEqual(sut.refreshInterval, 300)
+        // given
+        let notOffered: [TimeInterval] = [100, 10_000]
+
+        // when
+        let stored = notOffered.map { value -> TimeInterval in
+            sut.refreshInterval = value
+            return sut.refreshInterval
+        }
+
+        // then
+        XCTAssertEqual(stored, [300, 300])
     }
 
     func test_givenAnOfferedInterval_whenSetting_thenItIsKept() {
-        sut.refreshInterval = 1_800
-        XCTAssertEqual(sut.refreshInterval, 1_800)
+        // given
+        let offered: TimeInterval = 1_800
+
+        // when
+        sut.refreshInterval = offered
+
+        // then
+        XCTAssertEqual(sut.refreshInterval, offered)
     }
 
     func test_givenNoStoredFeeds_whenReadingSubstackFeeds_thenReturnsDefaultFeeds() {
+        // given
+        // Nothing stored, so the shipped defaults stand in.
+
+        // when
         let feeds = sut.substackFeeds
+
+        // then
         XCTAssertEqual(feeds.count, 2)
         XCTAssertEqual(feeds[0].url.absoluteString, "https://www.lennysnewsletter.com/feed")
         XCTAssertEqual(feeds[0].category, .work)
@@ -57,22 +96,47 @@ final class UserPreferencesTests: XCTestCase {
     }
 
     func test_givenCustomFeedsSet_whenReadingFromNewInstance_thenPersistsAcrossInstances() {
+        // given
         let custom = [SubstackFeed(url: URL(string: "https://x.substack.com/feed")!, category: .technology)]
         sut.substackFeeds = custom
-        XCTAssertEqual(UserPreferences(defaults: defaults).substackFeeds, custom)
+
+        // when
+        let reloaded = UserPreferences(defaults: defaults).substackFeeds
+
+        // then
+        XCTAssertEqual(reloaded, custom)
     }
 
     func test_givenNoStoredMaxArticles_whenReadingMaxArticles_thenDefaultsTo15() {
-        XCTAssertEqual(sut.maxArticles, 15)
+        // given
+        // Nothing stored.
+
+        // when
+        let maxArticles = sut.maxArticles
+
+        // then
+        XCTAssertEqual(maxArticles, 15)
     }
 
     func test_givenValidMaxArticlesSet_whenReadingFromNewInstance_thenPersistsAcrossInstances() {
+        // given
         sut.maxArticles = 50
-        XCTAssertEqual(UserPreferences(defaults: defaults).maxArticles, 50)
+
+        // when
+        let reloaded = UserPreferences(defaults: defaults).maxArticles
+
+        // then
+        XCTAssertEqual(reloaded, 50)
     }
 
     func test_givenInvalidMaxArticlesValue_whenSetting_thenSnapsTo15() {
-        sut.maxArticles = 22
+        // given
+        let notOffered = 22
+
+        // when
+        sut.maxArticles = notOffered
+
+        // then
         XCTAssertEqual(sut.maxArticles, 15)
     }
 }

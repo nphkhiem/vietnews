@@ -10,6 +10,7 @@ final class NetworkServiceTests: XCTestCase {
     }
 
     func test_given200Response_whenFetchingData_thenReturnsData() async throws {
+        // given
         let expected = Data("hello".utf8)
         MockURLProtocol.handler = { request in
             let response = HTTPURLResponse(
@@ -19,12 +20,15 @@ final class NetworkServiceTests: XCTestCase {
         }
         let sut = URLSessionNetworkService(session: .mocked())
 
+        // when
         let data = try await sut.data(from: url)
 
+        // then
         XCTAssertEqual(data, expected)
     }
 
     func test_given404Response_whenFetchingData_thenThrowsInvalidResponse() async {
+        // given
         MockURLProtocol.handler = { request in
             let response = HTTPURLResponse(
                 url: request.url!, statusCode: 404, httpVersion: nil, headerFields: nil
@@ -33,11 +37,10 @@ final class NetworkServiceTests: XCTestCase {
         }
         let sut = URLSessionNetworkService(session: .mocked())
 
-        do {
-            _ = try await sut.data(from: url)
-            XCTFail("Expected throw")
-        } catch {
-            XCTAssertEqual(error as? NewsError, .invalidResponse(statusCode: 404))
-        }
+        // when
+        let thrown = await errorThrown { _ = try await sut.data(from: self.url) }
+
+        // then
+        XCTAssertEqual(thrown as? NewsError, .invalidResponse(statusCode: 404))
     }
 }

@@ -46,33 +46,39 @@ final class ThumbnailLoaderTests: XCTestCase {
     private let url = URL(string: "https://example.com/photo.png")!
 
     func test_givenLargeSourceImage_whenLoading_thenDecodesNoLargerThanRequested() async throws {
+        // given
         let network = CountingNetworkService(payload: .success(try largeImageData()))
         let sut = ThumbnailLoader(network: network)
-
         let image = try await sut.thumbnail(for: url, maxPixelSize: 160)
 
+        // when
         let longestEdge = max(image.size.width * image.scale, image.size.height * image.scale)
+
+        // then
         XCTAssertLessThanOrEqual(longestEdge, 160, "the decode must be bounded by what is displayed")
         XCTAssertGreaterThan(longestEdge, 0)
     }
 
     func test_givenSameURLRequestedTwice_whenSecondRequestArrivesAfterTheFirst_thenServesFromCache() async throws {
+        // given
         let network = CountingNetworkService(payload: .success(try largeImageData()))
         let sut = ThumbnailLoader(network: network)
-
         _ = try await sut.thumbnail(for: url, maxPixelSize: 160)
         _ = try await sut.thumbnail(for: url, maxPixelSize: 160)
 
+        // when
         let calls = await network.callCount
+
+        // then
         XCTAssertEqual(calls, 1)
     }
 
     /// Several rows can show the same image, and a row can be rebuilt mid-flight. Without
     /// coalescing that is one download and one decode per row.
     func test_givenConcurrentRequestsForOneURL_whenBothInFlight_thenOnlyOneDownloadHappens() async throws {
+        // given
         let network = CountingNetworkService(payload: .success(try largeImageData()), gated: true)
         let sut = ThumbnailLoader(network: network)
-
         async let first = sut.thumbnail(for: url, maxPixelSize: 160)
         while await !network.didEnter {
             await Task.yield()
@@ -84,55 +90,64 @@ final class ThumbnailLoaderTests: XCTestCase {
         await network.release()
         _ = try await (first, second)
 
+        // when
         let calls = await network.callCount
+
+        // then
         XCTAssertEqual(calls, 1)
     }
 
     func test_givenDifferentSizesForOneURL_whenLoading_thenEachSizeIsItsOwnEntry() async throws {
+        // given
         let network = CountingNetworkService(payload: .success(try largeImageData()))
         let sut = ThumbnailLoader(network: network)
-
         _ = try await sut.thumbnail(for: url, maxPixelSize: 160)
         _ = try await sut.thumbnail(for: url, maxPixelSize: 320)
 
+        // when
         let calls = await network.callCount
+
+        // then
         XCTAssertEqual(calls, 2, "a larger request cannot be served by a smaller decode")
     }
 
     func test_givenResponseThatIsNotAnImage_whenLoading_thenReportsItRatherThanReturningNothing() async throws {
+        // given
         let network = CountingNetworkService(payload: .success(Data("<html>blocked</html>".utf8)))
         let sut = ThumbnailLoader(network: network)
 
-        do {
-            _ = try await sut.thumbnail(for: url, maxPixelSize: 160)
-            XCTFail("Expected throw")
-        } catch {
-            XCTAssertEqual(error as? ThumbnailError, .notAnImage)
-        }
+        // when
+        let thrown = await errorThrown { _ = try await sut.thumbnail(for: self.url, maxPixelSize: 160) }
+
+        // then
+        XCTAssertEqual(thrown as? ThumbnailError, .notAnImage)
     }
 
     func test_givenNetworkFailure_whenLoading_thenPropagatesTheError() async throws {
+        // given
         let network = CountingNetworkService(payload: .failure(NewsError.invalidResponse(statusCode: 404)))
         let sut = ThumbnailLoader(network: network)
 
-        do {
-            _ = try await sut.thumbnail(for: url, maxPixelSize: 160)
-            XCTFail("Expected throw")
-        } catch {
-            XCTAssertEqual(error as? NewsError, .invalidResponse(statusCode: 404))
-        }
+        // when
+        let thrown = await errorThrown { _ = try await sut.thumbnail(for: self.url, maxPixelSize: 160) }
+
+        // then
+        XCTAssertEqual(thrown as? NewsError, .invalidResponse(statusCode: 404))
     }
 
     /// A failed load must not poison the entry, otherwise the retry the interface offers could
     /// never succeed.
     func test_givenFailedLoad_whenRetrying_thenTheRequestIsMadeAgain() async throws {
+        // given
         let network = CountingNetworkService(payload: .success(Data("not an image".utf8)))
         let sut = ThumbnailLoader(network: network)
-
         _ = try? await sut.thumbnail(for: url, maxPixelSize: 160)
         _ = try? await sut.thumbnail(for: url, maxPixelSize: 160)
 
+        // when
         let calls = await network.callCount
+
+        // then
         XCTAssertEqual(calls, 2)
     }
 }

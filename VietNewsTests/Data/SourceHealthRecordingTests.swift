@@ -32,19 +32,23 @@ final class SourceHealthRecordingTests: XCTestCase {
     }
 
     func test_givenAFetch_whenOneSourceFails_thenEachOutcomeIsRecordedSeparately() async throws {
+        // given
         let sut = makeSUT([
             FakeHealthAdapter(source: .bbc, result: .success([TestFactory.article(source: .bbc)])),
             FakeHealthAdapter(source: .nyt, result: .failure(NewsError.sourceTimeout(.nyt)))
         ])
 
+        // when
         _ = try await sut.fetchArticles(category: .world, language: .english)
 
+        // then
         XCTAssertNotNil(health.health(for: .builtIn(.bbc)).lastSucceededAt)
         XCTAssertNil(health.health(for: .builtIn(.bbc)).lastFailure)
         XCTAssertEqual(health.health(for: .builtIn(.nyt)).lastFailure, .timedOut)
     }
 
     func test_givenADisabledSource_whenFetching_thenItIsNeverAttempted() async throws {
+        // given
         let disabled = FakeHealthAdapter(source: .nyt, result: .failure(NewsError.sourceTimeout(.nyt)))
         let sut = makeSUT([
             FakeHealthAdapter(source: .bbc, result: .success([TestFactory.article(source: .bbc)])),
@@ -52,8 +56,10 @@ final class SourceHealthRecordingTests: XCTestCase {
         ])
         health.setEnabled(false, for: .builtIn(.nyt))
 
+        // when
         let result = try await sut.fetchArticles(category: .world, language: .english)
 
+        // then
         // Not attempted is what stops it contributing failures: it cannot be reported as failing
         // if it was never asked, and its record is left as it was.
         XCTAssertEqual(result.failedSources, [])
@@ -62,23 +68,29 @@ final class SourceHealthRecordingTests: XCTestCase {
     }
 
     func test_givenEverySourceDisabled_whenFetching_thenItReportsNothingRatherThanFailing() async throws {
+        // given
         let sut = makeSUT([FakeHealthAdapter(source: .bbc)])
         health.setEnabled(false, for: .builtIn(.bbc))
 
+        // when
         let result = try await sut.fetchArticles(category: .world, language: .english)
 
+        // then
         XCTAssertEqual(result.articles, [])
         XCTAssertEqual(result.failedSources, [])
     }
 
     func test_givenADisabledSourceIsSwitchedBackOn_whenFetching_thenItContributesAgain() async throws {
+        // given
         let sut = makeSUT([FakeHealthAdapter(source: .bbc, result: .success([TestFactory.article(source: .bbc)]))])
         health.setEnabled(false, for: .builtIn(.bbc))
         _ = try await sut.fetchArticles(category: .world, language: .english)
-
         health.setEnabled(true, for: .builtIn(.bbc))
+
+        // when
         let result = try await sut.fetchArticles(category: .world, language: .english)
 
+        // then
         XCTAssertEqual(result.articles.count, 1)
     }
 }
@@ -90,6 +102,7 @@ final class SubstackFeedHealthTests: XCTestCase {
     /// One adapter serves every feed the reader added, so a single `.substack` verdict could not
     /// say which of them is broken. Before this, the per-feed errors were swallowed outright.
     func test_givenTwoFeedsWhereOneFails_whenFetching_thenHealthIsRecordedPerFeed() async throws {
+        // given
         let health = MockSourceHealthRepository()
         let network = RoutingNetworkService(failing: [broken])
         let parser = StubRSSParser()
@@ -112,13 +125,16 @@ final class SubstackFeedHealthTests: XCTestCase {
             health: health
         )
 
+        // when
         _ = try await sut.fetch(category: .technology, language: .english)
 
+        // then
         XCTAssertNotNil(health.health(for: .userFeed(working)).lastSucceededAt)
         XCTAssertEqual(health.health(for: .userFeed(broken)).lastFailure, .unreachable)
     }
 
     func test_givenAFeedIsRead_whenItAnnouncesItsName_thenThatNameIsRemembered() async throws {
+        // given
         let health = MockSourceHealthRepository()
         let parser = StubRSSParser()
         parser.channelTitle = "The Pragmatic Engineer"
@@ -129,12 +145,15 @@ final class SubstackFeedHealthTests: XCTestCase {
             health: health
         )
 
+        // when
         _ = try await sut.fetch(category: .technology, language: .english)
 
+        // then
         XCTAssertEqual(health.health(for: .userFeed(working)).publicationTitle, "The Pragmatic Engineer")
     }
 
     func test_givenADisabledFeed_whenListingEndpoints_thenItIsExcluded() {
+        // given
         let health = MockSourceHealthRepository()
         let sut = SubstackSource(
             network: RoutingNetworkService(failing: []),
@@ -145,12 +164,16 @@ final class SubstackFeedHealthTests: XCTestCase {
             ] },
             health: health
         )
+
+        // when
         health.setEnabled(false, for: .userFeed(broken))
 
+        // then
         XCTAssertEqual(sut.endpoints(category: .technology, language: .english), [working])
     }
 
     func test_givenEveryFeedInACategoryIsDisabled_whenAsked_thenItServesNothing() {
+        // given
         let health = MockSourceHealthRepository()
         let sut = SubstackSource(
             network: RoutingNetworkService(failing: []),
@@ -158,8 +181,11 @@ final class SubstackFeedHealthTests: XCTestCase {
             feeds: { [SubstackFeed(url: self.working, category: .technology)] },
             health: health
         )
+
+        // when
         health.setEnabled(false, for: .userFeed(working))
 
+        // then
         XCTAssertFalse(sut.supports(category: .technology, language: .english))
     }
 }

@@ -29,6 +29,7 @@ final class NewsPipelineIntegrationTests: XCTestCase {
     }
 
     func test_givenLiveHTTPFixture_whenFetchingSportNews_thenPipelineParsesAndReturnsArticles() async throws {
+        // given
         let xml = try fixtureData("vnexpress_sport")
         MockURLProtocol.handler = { request in
             let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
@@ -36,8 +37,10 @@ final class NewsPipelineIntegrationTests: XCTestCase {
         }
         let useCase = makeUseCase()
 
+        // when
         let result = try await useCase.execute(category: .sport, language: .vietnamese)
 
+        // then
         XCTAssertEqual(result.articles.count, 2)
         XCTAssertEqual(result.articles.first?.title, "Việt Nam thắng trận mở màn")
         XCTAssertEqual(result.articles.first?.source, .vnexpress)
@@ -45,6 +48,7 @@ final class NewsPipelineIntegrationTests: XCTestCase {
     }
 
     func test_givenCachedResultWithinTTL_whenFetchingAgain_thenMakesNoAdditionalNetworkRequests() async throws {
+        // given
         let xml = try fixtureData("vnexpress_sport")
         var requestCount = 0
         MockURLProtocol.handler = { request in
@@ -53,28 +57,32 @@ final class NewsPipelineIntegrationTests: XCTestCase {
             return (response, xml)
         }
         let useCase = makeUseCase()
+
+        // when
         _ = try await useCase.execute(category: .sport, language: .vietnamese)
+
+        // then
         XCTAssertEqual(requestCount, 1)
-
         let second = try await useCase.execute(category: .sport, language: .vietnamese)
-
         XCTAssertEqual(requestCount, 1) // no additional network call - served from disk cache
         XCTAssertTrue(second.isFromCache)
         XCTAssertEqual(second.articles.count, 2)
     }
 
     func test_givenHTTPFailureWithNoPriorCache_whenFetching_thenPropagatesTheFailedSources() async throws {
+        // given
         MockURLProtocol.handler = { request in
             let response = HTTPURLResponse(url: request.url!, statusCode: 500, httpVersion: nil, headerFields: nil)!
             return (response, Data())
         }
         let useCase = makeUseCase()
 
-        do {
+        // when
+        let thrown = await errorThrown {
             _ = try await useCase.execute(category: .sport, language: .vietnamese)
-            XCTFail("Expected throw")
-        } catch {
-            XCTAssertEqual(error as? NewsError, .allSourcesFailed([.vnexpress], cause: .rejected))
         }
+
+        // then
+        XCTAssertEqual(thrown as? NewsError, .allSourcesFailed([.vnexpress], cause: .rejected))
     }
 }

@@ -1,3 +1,4 @@
+import XCTest
 import Foundation
 import UIKit
 @testable import VietNews
@@ -173,5 +174,25 @@ final class MockRefreshScheduler: RefreshScheduling {
 struct StubThumbnailLoader: ThumbnailLoading {
     func thumbnail(for url: URL, maxPixelSize: Int) async throws -> UIImage {
         throw ThumbnailError.notAnImage
+    }
+}
+
+extension XCTestCase {
+    /// Runs `operation` and returns the error it threw, failing the test if it did not throw.
+    ///
+    /// Lets a test keep a single `when` that produces a value, rather than a `do`/`catch` block
+    /// that performs the action and asserts about it in the same breath.
+    func errorThrown(
+        file: StaticString = #filePath,
+        line: UInt = #line,
+        from operation: () async throws -> Void
+    ) async -> Error? {
+        do {
+            try await operation()
+            XCTFail("expected an error, but none was thrown", file: file, line: line)
+            return nil
+        } catch {
+            return error
+        }
     }
 }

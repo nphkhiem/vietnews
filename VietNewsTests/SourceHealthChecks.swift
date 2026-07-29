@@ -48,9 +48,9 @@ final class SourceHealthChecks: XCTestCase {
     }
 
     func test_givenEveryConfiguredSource_whenCheckingHealth_thenEachOneReturnsArticles() async throws {
+        // given
         var report: [String] = []
         var failedSources: [NewsSource] = []
-
         for adapter in adapters() {
             var outcomes: [(NewsCategory, Language, Outcome)] = []
 
@@ -78,8 +78,10 @@ final class SourceHealthChecks: XCTestCase {
             }
         }
 
+        // when
         print("Source health report\n" + report.joined(separator: "\n"))
 
+        // then
         XCTAssertTrue(
             failedSources.isEmpty,
             "These sources returned nothing for every category they claim to support: "

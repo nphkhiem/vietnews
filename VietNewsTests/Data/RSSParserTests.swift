@@ -10,10 +10,13 @@ final class RSSParserTests: XCTestCase {
     }
 
     func test_givenVNExpressFeedXML_whenParsing_thenReturnsMappedItems() throws {
+        // given
         let sut = FeedKitRSSParser()
 
+        // when
         let items = try sut.parse(try fixture("vnexpress_sport"))
 
+        // then
         XCTAssertEqual(items.count, 2)
         XCTAssertEqual(items[0].title, "Việt Nam thắng trận mở màn")
         XCTAssertEqual(
@@ -29,26 +32,54 @@ final class RSSParserTests: XCTestCase {
     }
 
     func test_givenItemWithoutImage_whenParsing_thenImageURLIsNil() throws {
-        let items = try FeedKitRSSParser().parse(try fixture("vnexpress_sport"))
+        // given
+        let sut = FeedKitRSSParser()
+        let data = try fixture("vnexpress_sport")
+
+        // when
+        let items = try sut.parse(data)
+
+        // then
         XCTAssertNil(items[1].imageURL)
         XCTAssertEqual(items[1].summary, "Plain description, no markup.")
     }
 
     func test_givenMalformedData_whenParsing_thenThrowsParsingFailed() {
+        // given
         let sut = FeedKitRSSParser(parsingSource: .bbc)
-        XCTAssertThrowsError(try sut.parse(Data("not xml at all".utf8))) { error in
+        let malformed = Data("not xml at all".utf8)
+
+        // when
+        let parse = { try sut.parse(malformed) }
+
+        // then
+        XCTAssertThrowsError(try parse()) { error in
             XCTAssertEqual(error as? NewsError, .parsingFailed(.bbc))
         }
     }
 
     func test_givenHTMLString_whenStrippingHTML_thenReturnsPlainText() {
-        XCTAssertEqual("<p>Hello <b>world</b></p>".strippingHTML(), "Hello world")
-        XCTAssertEqual("A &amp; B".strippingHTML(), "A & B")
+        // given
+        let cases = [("<p>Hello <b>world</b></p>", "Hello world"), ("A &amp; B", "A & B")]
+
+        // when
+        let stripped = cases.map { $0.0.strippingHTML() }
+
+        // then
+        XCTAssertEqual(stripped, cases.map(\.1))
     }
 
     func test_givenHTMLWithImgTag_whenExtractingFirstImageURL_thenReturnsURL() {
+        // given
         let html = #"<a href="x"><img src="https://cdn.site/img.jpg" /></a>text"#
-        XCTAssertEqual(html.firstImageURL()?.absoluteString, "https://cdn.site/img.jpg")
-        XCTAssertNil("no image here".firstImageURL())
+        let withoutImage = "no image here"
+
+        // when
+        let found = html.firstImageURL()
+        let missing = withoutImage.firstImageURL()
+
+        // then
+        XCTAssertEqual(found?.absoluteString, "https://cdn.site/img.jpg")
+        XCTAssertNil(missing)
     }
 }
