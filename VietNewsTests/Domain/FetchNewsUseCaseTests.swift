@@ -16,7 +16,7 @@ final class FetchNewsUseCaseTests: XCTestCase {
         FetchNewsUseCase(
             articleRepository: articleRepo,
             cacheRepository: cacheRepo,
-            ttl: ttl,
+            ttl: { ttl },
             now: { self.fixedNow },
             articleLimit: { articleLimit }
         )

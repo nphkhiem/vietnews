@@ -8,7 +8,10 @@ final class UserPreferences {
         static let maxArticles = "preferences.maxArticles"
     }
 
-    private static let intervalRange: ClosedRange<TimeInterval> = 300...600
+    /// Zero means off. The rest are the intervals a reader might plausibly want, rather than a
+    /// slider over a five to ten minute band that offered no real choice and could not be
+    /// switched off at all.
+    static let refreshIntervalOptions: [TimeInterval] = [0, 300, 900, 1_800, 3_600]
     private static let validMaxArticlesOptions: [Int] = [15, 30, 50, 70]
 
     private static let defaultSubstackFeeds: [SubstackFeed] = [
@@ -31,15 +34,28 @@ final class UserPreferences {
         }
     }
 
+    /// Zero is a real choice now, so an unset preference cannot be represented by zero the way
+    /// it was. The absence of the key is what means "never set", and that defaults to five
+    /// minutes; a stored zero means the reader turned it off.
     var refreshInterval: TimeInterval {
         get {
+            guard defaults.object(forKey: Keys.refreshInterval) != nil else { return 300 }
             let stored = defaults.double(forKey: Keys.refreshInterval)
-            return stored == 0 ? 300 : stored
+            return Self.refreshIntervalOptions.contains(stored) ? stored : 300
         }
         set {
-            let clamped = min(max(newValue, Self.intervalRange.lowerBound), Self.intervalRange.upperBound)
-            defaults.set(clamped, forKey: Keys.refreshInterval)
+            let snapped = Self.refreshIntervalOptions.contains(newValue) ? newValue : 300
+            defaults.set(snapped, forKey: Keys.refreshInterval)
         }
+    }
+
+    /// How long cached articles stay current. Follows the chosen interval, so a reader who asked
+    /// for hourly refreshes is not served a refetch every five minutes by a separate fixed
+    /// number they never saw. With automatic refresh off, the cache still ages out, otherwise
+    /// pulling to refresh would be the only way the app ever saw new articles.
+    var cacheTTL: TimeInterval {
+        let interval = refreshInterval
+        return interval > 0 ? interval : 900
     }
 
     var substackFeeds: [SubstackFeed] {

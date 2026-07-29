@@ -140,6 +140,18 @@ final class FeedUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts[A11y.searchNoMatches].waitForExistence(timeout: 5))
     }
 
+    /// Automatic refresh can be switched off, which the old five to ten minute slider could not
+    /// express at all.
+    func test_givenSettingsShown_whenTurningAutoRefreshOff_thenTheChoiceIsSelected() {
+        openSettings()
+        let off = app.buttons[A11y.refreshSegment(seconds: 0)]
+        XCTAssertTrue(off.waitForExistence(timeout: 5))
+
+        off.tap()
+
+        XCTAssertTrue(off.isSelected)
+    }
+
     // MARK: - Helpers
 
     private enum PickerLanguage: String {
@@ -182,4 +194,5 @@ enum A11y {
     static let mastheadSearch = "masthead.search"
     static let searchField = "search.field"
     static let searchNoMatches = "search.noMatches"
+    static func refreshSegment(seconds: Int) -> String { "settings.refresh.\(seconds)" }
 }

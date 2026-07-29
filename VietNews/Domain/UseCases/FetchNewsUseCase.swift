@@ -10,14 +10,14 @@ struct NewsFeedResult: Equatable {
 struct FetchNewsUseCase {
     private let articleRepository: ArticleRepository
     private let cacheRepository: CacheRepository
-    private let ttl: TimeInterval
+    private let ttl: () -> TimeInterval
     private let now: () -> Date
     private let articleLimit: () -> Int
 
     init(
         articleRepository: ArticleRepository,
         cacheRepository: CacheRepository,
-        ttl: TimeInterval = 300,
+        ttl: @escaping () -> TimeInterval = { 300 },
         now: @escaping () -> Date = Date.init,
         articleLimit: @escaping () -> Int = { 15 }
     ) {
@@ -39,7 +39,7 @@ struct FetchNewsUseCase {
         let cached = cacheRepository.load(category: category, language: language)
         let limit = articleLimit()
 
-        if let cached, now().timeIntervalSince(cached.fetchedAt) < ttl, cached.satisfies(articleLimit: limit) {
+        if let cached, now().timeIntervalSince(cached.fetchedAt) < ttl(), cached.satisfies(articleLimit: limit) {
             return NewsFeedResult(
                 articles: cached.articles,
                 failedSources: cached.failedSources,

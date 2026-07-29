@@ -57,15 +57,14 @@ struct SettingsView: View {
 
     private var refresh: some View {
         SettingsGroup(title: L10n.settingsSectionAutoRefresh(language)) {
-            // Same rhythm as a `SettingsField`, but the interval is the slider's live readout
-            // rather than a static label, so it keeps the primary reading colour.
-            VStack(alignment: .leading, spacing: Tokens.Space.s) {
-                Text(intervalLabel)
-                    .font(Tokens.Typography.category)
-                    .foregroundStyle(Tokens.Palette.ink)
-                Slider(value: $viewModel.refreshInterval, in: 300...600, step: 60)
-                    .tint(Tokens.Palette.accent)
-            }
+            // No field label: the group heading already says "Auto-refresh", and repeating it
+            // directly beneath was the same words twice.
+            SegmentedControl(
+                options: SettingsViewModel.refreshIntervalOptions,
+                title: { Self.intervalLabel(for: $0, language: language) },
+                identifier: { "settings.refresh.\(Int($0))" },
+                selection: $viewModel.refreshInterval
+            )
             .padding(.horizontal, Tokens.Space.l)
         }
     }
@@ -128,7 +127,13 @@ struct SettingsView: View {
         )
     }
 
-    private var intervalLabel: String {
-        L10nPlural.settingsInterval(language, count: Int(viewModel.refreshInterval / 60))
+    /// Off reads as a word rather than as a zero, because a segment saying "0 minutes" would be
+    /// describing a refresh that happens constantly rather than one that never happens.
+    ///
+    /// Just the duration, not "Every 5 minutes". Five segments of a full sentence truncated to
+    /// "Mỗi 5 p…" and said nothing at all.
+    private static func intervalLabel(for interval: TimeInterval, language: Language) -> String {
+        guard interval > 0 else { return L10n.settingsRefreshOff(language) }
+        return L10nPlural.settingsRefreshMinutes(language, count: Int(interval / 60))
     }
 }

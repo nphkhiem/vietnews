@@ -31,13 +31,20 @@ final class UserPreferencesTests: XCTestCase {
         XCTAssertEqual(sut.refreshInterval, 300)
     }
 
-    func test_givenIntervalOutsideRange_whenSetting_thenClampsTo300To600() {
+    /// The interval is a choice from a list now rather than a point on a range, so an
+    /// unrecognised value snaps to the default instead of being clamped into a band. Ticket 34
+    /// replaced the five to ten minute slider, which offered no real choice and could not be
+    /// switched off.
+    func test_givenAnIntervalNotOffered_whenSetting_thenItSnapsToTheDefault() {
         sut.refreshInterval = 100
         XCTAssertEqual(sut.refreshInterval, 300)
         sut.refreshInterval = 10_000
-        XCTAssertEqual(sut.refreshInterval, 600)
-        sut.refreshInterval = 450
-        XCTAssertEqual(sut.refreshInterval, 450)
+        XCTAssertEqual(sut.refreshInterval, 300)
+    }
+
+    func test_givenAnOfferedInterval_whenSetting_thenItIsKept() {
+        sut.refreshInterval = 1_800
+        XCTAssertEqual(sut.refreshInterval, 1_800)
     }
 
     func test_givenNoStoredFeeds_whenReadingSubstackFeeds_thenReturnsDefaultFeeds() {

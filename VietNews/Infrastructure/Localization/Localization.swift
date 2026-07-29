@@ -41,6 +41,7 @@ enum L10n: String, CaseIterable {
     case settingsTitle = "settings.title"
     case settingsSectionLanguage = "settings.section.language"
     case settingsSectionAutoRefresh = "settings.section.autoRefresh"
+    case settingsRefreshOff = "settings.refresh.off"
     case settingsSectionMaxArticles = "settings.section.maxArticles"
     case settingsSectionSubstack = "settings.section.substack"
     case settingsMaxArticlesLabel = "settings.maxArticles.label"
@@ -119,6 +120,7 @@ enum L10nPlural: String {
     case daysAgo = "time.daysAgo"
     case settingsInterval = "settings.interval"
     case sourcesCategoryCount = "sources.categoryCount"
+    case settingsRefreshMinutes = "settings.refresh.minutes"
 
     func callAsFunction(_ language: Language, count: Int) -> String {
         String(format: Localization.string(rawValue, language: language), locale: language.locale, count)
