@@ -28,15 +28,17 @@ struct ArticleRowView: View {
                     }
 
                     VStack(alignment: .leading, spacing: Tokens.Space.xs + 1) {
-                        sourceLine
+                        SourceLine(article: article, language: language, isRead: isRead)
                         headline
                     }
                     Spacer(minLength: 0)
                 }
 
-                // Full width, so it gets a proper measure rather than being clipped early by
-                // the image beside it.
+                // Aligned to the headline's left edge rather than run flush to the margin. It
+                // costs the width of the thumbnail and buys one continuous text column, which is
+                // what makes the row read as a single thing rather than two.
                 summary
+                    .padding(.leading, showsThumbnail ? thumbnailSide + Tokens.Space.m : 0)
             }
             .padding(.horizontal, Tokens.Space.l)
             .padding(.vertical, Tokens.Space.m)
@@ -50,26 +52,6 @@ struct ArticleRowView: View {
         .accessibilityIdentifier(accessibilityIdentifier)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityAddTraits(.isButton)
-    }
-
-    private var sourceLine: some View {
-        HStack(spacing: Tokens.Space.s) {
-            // Uppercase and tracked, so a source is recognisable by its shape before it is read
-            // and is never distinguished by colour alone.
-            Text(article.source.displayName.uppercased())
-                .font(Tokens.Typography.meta)
-                .tracking(0.8)
-                .foregroundStyle(isRead ? Tokens.Palette.inkTertiary : Tokens.Palette.source(article.source))
-
-            if let timestamp = ArticleTimestampFormatter.string(for: article.publishedAt, language: language) {
-                Text(verbatim: "·")
-                    .font(Tokens.Typography.meta)
-                    .foregroundStyle(Tokens.Palette.inkTertiary)
-                Text(timestamp)
-                    .font(Tokens.Typography.meta.weight(.regular))
-                    .foregroundStyle(Tokens.Palette.inkTertiary)
-            }
-        }
     }
 
     // A read headline changes colour only. Nothing moves, so a refreshed feed does not reflow
@@ -125,8 +107,41 @@ struct ArticleRowView: View {
         article.imageURL != nil && !hidesThumbnail
     }
 
-    /// Reads as one sentence: what it is, who published it, when, and whether it has been opened.
     private var accessibilityLabel: String {
+        ArticleAccessibility.label(for: article, language: language, isRead: isRead)
+    }
+}
+
+/// The publication and age line, shared by the lead and the compact row so the two cannot drift.
+struct SourceLine: View {
+    let article: Article
+    let language: Language
+    let isRead: Bool
+
+    var body: some View {
+        HStack(spacing: Tokens.Space.s) {
+            // Uppercase and tracked, so a source is recognisable by its shape before it is read
+            // and is never distinguished by colour alone.
+            Text(article.source.displayName.uppercased())
+                .font(Tokens.Typography.meta)
+                .tracking(0.8)
+                .foregroundStyle(isRead ? Tokens.Palette.inkTertiary : Tokens.Palette.source(article.source))
+
+            if let timestamp = ArticleTimestampFormatter.string(for: article.publishedAt, language: language) {
+                Text(verbatim: "·")
+                    .font(Tokens.Typography.meta)
+                    .foregroundStyle(Tokens.Palette.inkTertiary)
+                Text(timestamp)
+                    .font(Tokens.Typography.meta.weight(.regular))
+                    .foregroundStyle(Tokens.Palette.inkTertiary)
+            }
+        }
+    }
+}
+
+enum ArticleAccessibility {
+    /// Reads as one sentence: what it is, who published it, when, and whether it has been opened.
+    static func label(for article: Article, language: Language, isRead: Bool) -> String {
         var parts = [article.title, article.source.displayName]
         if let timestamp = ArticleTimestampFormatter.string(for: article.publishedAt, language: language) {
             parts.append(timestamp)

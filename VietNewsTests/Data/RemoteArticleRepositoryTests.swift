@@ -211,4 +211,47 @@ final class RemoteArticleRepositoryTests: XCTestCase {
         XCTAssertEqual(Set(result.articles.map(\.id)).count, 2, "identifiers must be unique")
         XCTAssertEqual(result.articles.first?.title, "Reissued headline", "the newest is kept")
     }
+
+    /// An aggregator whose feed renders as one publication is not doing its job. BBC took nearly
+    /// every slot in the English categories purely by publishing more often.
+    func test_givenOneProlificSource_whenFetching_thenItDoesNotFillTheCategory() async throws {
+        let prolific = FakeAdapter(
+            source: .bbc, result: .success(articles(30, source: .bbc, startingAt: 5_000))
+        )
+        let occasional = FakeAdapter(
+            source: .nyt, result: .success(articles(5, source: .nyt, startingAt: 1_000))
+        )
+        let sut = RemoteArticleRepository(adapters: [prolific, occasional], maxArticles: { 12 })
+
+        let result = try await sut.fetchArticles(category: .world, language: .english)
+
+        let bbc = result.articles.filter { $0.source == .bbc }.count
+        XCTAssertEqual(result.articles.count, 12)
+        XCTAssertLessThanOrEqual(bbc, 8, "one source must not dominate: \(bbc) of 12")
+        XCTAssertGreaterThan(result.articles.filter { $0.source == .nyt }.count, 0)
+    }
+
+    /// The cap decides which articles appear, never what order they appear in.
+    func test_givenTheShareCap_whenFetching_thenOrderingIsStillNewestFirst() async throws {
+        let a = FakeAdapter(source: .bbc, result: .success(articles(20, source: .bbc, startingAt: 5_000)))
+        let b = FakeAdapter(source: .nyt, result: .success(articles(20, source: .nyt, startingAt: 1_000)))
+        let sut = RemoteArticleRepository(adapters: [a, b], maxArticles: { 15 })
+
+        let result = try await sut.fetchArticles(category: .world, language: .english)
+
+        let dates = result.articles.map { $0.publishedAt ?? .distantPast }
+        XCTAssertEqual(dates, dates.sorted(by: >))
+    }
+
+    /// A category served by a single source must not be left short by its own share limit.
+    func test_givenOnlyOneSourceAvailable_whenFetching_thenTheCategoryIsStillFull() async throws {
+        let only = FakeAdapter(
+            source: .vnexpress, result: .success(articles(30, source: .vnexpress, startingAt: 1_000))
+        )
+        let sut = RemoteArticleRepository(adapters: [only], maxArticles: { 15 })
+
+        let result = try await sut.fetchArticles(category: .sport, language: .vietnamese)
+
+        XCTAssertEqual(result.articles.count, 15)
+    }
 }

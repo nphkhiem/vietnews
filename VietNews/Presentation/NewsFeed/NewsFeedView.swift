@@ -72,23 +72,38 @@ struct NewsFeedView: View {
                         .foregroundStyle(.secondary)
                 }
                 ForEach(Array(viewModel.articles.enumerated()), id: \.element.id) { index, article in
-                    ArticleRowView(
-                        article: article,
-                        language: viewModel.language,
-                        isRead: viewModel.readArticleIDs.contains(article.id),
-                        accessibilityIdentifier: "feed.row.\(article.category.rawValue).\(index)",
-                        thumbnailLoader: viewModel.thumbnailLoader,
-                        onOpen: {
-                            viewModel.markRead(article)
-                            presentedArticle = article
-                        }
-                    )
+                    // The first article carries the category. Everything below it is uniform, so
+                    // the eye has exactly one place to land.
+                    if index == 0 {
+                        LeadStoryView(
+                            article: article,
+                            language: viewModel.language,
+                            isRead: viewModel.readArticleIDs.contains(article.id),
+                            accessibilityIdentifier: "feed.row.\(article.category.rawValue).\(index)",
+                            thumbnailLoader: viewModel.thumbnailLoader,
+                            onOpen: { open(article) }
+                        )
+                    } else {
+                        ArticleRowView(
+                            article: article,
+                            language: viewModel.language,
+                            isRead: viewModel.readArticleIDs.contains(article.id),
+                            accessibilityIdentifier: "feed.row.\(article.category.rawValue).\(index)",
+                            thumbnailLoader: viewModel.thumbnailLoader,
+                            onOpen: { open(article) }
+                        )
+                    }
                     Divider()
                         .overlay(Tokens.Palette.hairline)
                 }
             }
         }
         .refreshable { await viewModel.refresh() }
+    }
+
+    private func open(_ article: Article) {
+        viewModel.markRead(article)
+        presentedArticle = article
     }
 
     private func refreshFailureBanner(_ message: String) -> some View {
