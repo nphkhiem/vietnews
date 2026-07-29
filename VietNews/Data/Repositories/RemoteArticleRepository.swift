@@ -4,15 +4,18 @@ final class RemoteArticleRepository: ArticleRepository {
     private let adapters: [NewsSourceAdapter]
     private let perSourceTimeout: TimeInterval
     private let maxArticles: () -> Int
+    private let maxSourceShare: Double
 
     init(
         adapters: [NewsSourceAdapter],
         perSourceTimeout: TimeInterval = 10,
-        maxArticles: @escaping () -> Int = { 15 }
+        maxArticles: @escaping () -> Int = { 15 },
+        maxSourceShare: Double = 1.0 / 3.0
     ) {
         self.adapters = adapters
         self.perSourceTimeout = perSourceTimeout
         self.maxArticles = maxArticles
+        self.maxSourceShare = maxSourceShare
     }
 
     func fetchArticles(category: NewsCategory, language: Language) async throws -> FetchResult {
@@ -66,9 +69,52 @@ final class RemoteArticleRepository: ArticleRepository {
             .sorted { ($0.publishedAt ?? .distantPast) > ($1.publishedAt ?? .distantPast) }
 
         return FetchResult(
-            articles: Array(Self.deduplicated(merged).prefix(maxArticles())),
+            articles: Self.balanced(
+                Self.deduplicated(merged),
+                limit: maxArticles(),
+                maxSourceShare: maxSourceShare
+            ),
             failedSources: failedSources
         )
+    }
+
+    /// Stops one publisher from filling a category.
+    ///
+    /// An aggregator whose feed renders as a single publication is not doing the thing it exists
+    /// to do, and that is what pure recency produced: BBC publishes far more often than the
+    /// others, so it took nearly every slot in the English categories.
+    ///
+    /// A source is held to its share only while other sources can fill the gap. When they cannot,
+    /// the remainder is backfilled rather than leaving the category short, so a category served
+    /// by a single source is unaffected. The result is re-sorted, so the cap decides which
+    /// articles appear and never what order they appear in.
+    private static func balanced(
+        _ articles: [Article],
+        limit: Int,
+        maxSourceShare: Double
+    ) -> [Article] {
+        guard limit > 0 else { return [] }
+        let perSource = max(1, Int((Double(limit) * maxSourceShare).rounded(.down)))
+
+        var counts: [NewsSource: Int] = [:]
+        var kept: [Article] = []
+        var overflow: [Article] = []
+
+        for article in articles where kept.count < limit {
+            let used = counts[article.source, default: 0]
+            if used < perSource {
+                counts[article.source] = used + 1
+                kept.append(article)
+            } else {
+                overflow.append(article)
+            }
+        }
+
+        if kept.count < limit {
+            kept.append(contentsOf: overflow.prefix(limit - kept.count))
+        }
+
+        return kept.sorted { ($0.publishedAt ?? .distantPast) > ($1.publishedAt ?? .distantPast) }
     }
 
     /// Removes articles sharing an identifier, keeping the first.
