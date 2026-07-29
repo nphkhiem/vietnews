@@ -102,3 +102,9 @@
 "subscribe.error.unreadable" = "That address answered, but it is not a feed this app can read.";
 "sources.add" = "Add a feed";
 "sources.add.detail" = "RSS, Atom, or JSON";
+
+/* Search */
+"search.title" = "Search";
+"search.placeholder" = "Headlines and summaries";
+"search.hint" = "Searching %@ articles already on this device.";
+"search.noMatches" = "No matches.";

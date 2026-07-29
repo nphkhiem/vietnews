@@ -17,6 +17,9 @@ struct RootView: View {
                 makeSubscriptionViewModel: {
                     Container.shared.settingsViewModel().makeSubscriptionViewModel()
                 },
+                makeSearchViewModel: { language in
+                    SearchViewModel(cache: Container.shared.cacheRepository(), language: language)
+                },
                 savedArticles: savedArticles
             )
                 .tabItem {
