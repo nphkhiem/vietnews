@@ -10,6 +10,7 @@
 "feed.sourcesUnavailable" = "Một số nguồn tin không khả dụng";
 "feed.sourcesUnavailableNamed" = "%@ không khả dụng";
 "feed.empty" = "Không có tin tức trong mục này";
+"feed.loading" = "Đang tải tin";
 "feed.retry" = "Thử lại";
 "feed.lastUpdated" = "Cập nhật lần cuối %@";
 

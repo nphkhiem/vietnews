@@ -64,11 +64,15 @@ struct NewsFeedView: View {
         switch viewModel.state {
         case .loading:
             ScrollView {
-                LazyVStack(spacing: 16) {
+                LazyVStack(spacing: 0) {
                     ForEach(0..<8, id: \.self) { _ in SkeletonRowView() }
                 }
-                .padding(.top, 8)
+                .padding(.top, Tokens.Space.s)
             }
+            // The placeholders are hidden individually, so the state announces itself once here
+            // rather than as eight empty items.
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(L10n.feedLoading(viewModel.language))
         case .empty:
             recoverableState(
                 icon: "newspaper",

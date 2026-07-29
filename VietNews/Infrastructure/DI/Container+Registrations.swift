@@ -14,6 +14,12 @@ extension Container {
         self { UserPreferences() }.singleton
     }
 
+    /// A singleton because it holds the read set in memory and writes through: two instances
+    /// would each hold their own copy and overwrite each other's.
+    var readArticleStore: Factory<ReadArticleStore> {
+        self { ReadArticleStore() }.singleton
+    }
+
     var vnexpressSource: Factory<NewsSourceAdapter> {
         self { VNExpressSource.make(network: self.networkService(), parser: FeedKitRSSParser(parsingSource: .vnexpress)) }
     }
@@ -123,6 +129,7 @@ extension Container {
                 preferences: self.userPreferences(),
                 scheduler: self.refreshScheduler(),
                 thumbnailLoader: self.thumbnailLoader(),
+                readArticles: self.readArticleStore(),
                 isOnline: { [monitor = self.networkMonitor()] in monitor.isOnline }
             )
         }.singleton
