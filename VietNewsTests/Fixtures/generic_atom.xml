@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+  <title>The Pragmatic Engineer</title>
+  <link href="https://newsletter.pragmaticengineer.com/" rel="alternate"/>
+  <updated>2026-07-20T10:00:00Z</updated>
+  <entry>
+    <title>Inside a platform team</title>
+    <link href="https://newsletter.pragmaticengineer.com/p/platform-team" rel="alternate" type="text/html"/>
+    <link href="https://newsletter.pragmaticengineer.com/p/platform-team.mp3" rel="enclosure" type="audio/mpeg"/>
+    <id>tag:pragmaticengineer,2026:/p/platform-team</id>
+    <published>2026-07-19T08:30:00Z</published>
+    <updated>2026-07-20T09:00:00Z</updated>
+    <summary type="html">How one company &lt;b&gt;actually&lt;/b&gt; staffs its platform group.</summary>
+    <media:thumbnail url="https://cdn.example.com/platform-960.jpg" width="960"/>
+    <media:thumbnail url="https://cdn.example.com/platform-320.jpg" width="320"/>
+  </entry>
+  <entry>
+    <title>Content only, no summary</title>
+    <link href="https://newsletter.pragmaticengineer.com/p/content-only"/>
+    <updated>2026-07-18T08:30:00Z</updated>
+    <content type="html">&lt;p&gt;Body text stands in.&lt;/p&gt;&lt;img src="https://cdn.example.com/inline.jpg"/&gt;</content>
+  </entry>
+  <entry>
+    <title>No link at all</title>
+    <updated>2026-07-17T08:30:00Z</updated>
+    <summary>Dropped, because a headline with nowhere to go is not an article.</summary>
+  </entry>
+</feed>

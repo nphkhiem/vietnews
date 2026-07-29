@@ -1,0 +1,27 @@
+{
+  "version": "https://jsonfeed.org/version/1.1",
+  "title": "Lenny's Newsletter",
+  "home_page_url": "https://www.lennysnewsletter.com/",
+  "items": [
+    {
+      "id": "1",
+      "url": "https://www.lennysnewsletter.com/p/growth-loops",
+      "title": "Growth loops that actually compound",
+      "summary": "Why most growth loops leak, and the three that do not.",
+      "image": "https://cdn.example.com/loops.jpg",
+      "date_published": "2026-07-19T08:30:00Z"
+    },
+    {
+      "id": "2",
+      "external_url": "https://example.com/external-only",
+      "title": "External link only",
+      "content_html": "<p>Falls back to the external address.</p><img src=\"https://cdn.example.com/ext.jpg\"/>",
+      "date_published": "2026-07-18T08:30:00Z"
+    },
+    {
+      "id": "3",
+      "title": "No address at all",
+      "summary": "Dropped."
+    }
+  ]
+}
