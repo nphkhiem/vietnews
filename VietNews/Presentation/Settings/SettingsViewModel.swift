@@ -6,8 +6,15 @@ final class SettingsViewModel: ObservableObject {
     /// cannot drift into offering and accepting different values.
     static let articleCountOptions = [15, 30, 50, 70]
 
+    /// One list, shared by the control and by the validation in `UserPreferences`.
+    static var refreshIntervalOptions: [TimeInterval] { UserPreferences.refreshIntervalOptions }
+
+    /// A segmented control writes once per choice. The slider it replaces wrote a preference and
+    /// restarted the timer on every step of a drag, so moving it from five to ten minutes
+    /// rewrote the preference six times and rearmed the scheduler six times.
     @Published var refreshInterval: TimeInterval {
         didSet {
+            guard refreshInterval != oldValue else { return }
             preferences.refreshInterval = refreshInterval
             scheduler.start(interval: preferences.refreshInterval)
         }

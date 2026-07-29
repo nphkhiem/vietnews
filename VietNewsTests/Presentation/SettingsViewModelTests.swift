@@ -36,19 +36,19 @@ final class SettingsViewModelTests: XCTestCase {
     }
 
     func test_givenStoredPreferences_whenInitializing_thenLoadsInitialValues() {
-        preferences.refreshInterval = 450
+        preferences.refreshInterval = 900
         let sut = makeSUT()
-        XCTAssertEqual(sut.refreshInterval, 450)
+        XCTAssertEqual(sut.refreshInterval, 900)
         XCTAssertEqual(sut.substackFeeds.count, 2) // defaults
     }
 
     func test_givenNewInterval_whenSet_thenPersistsAndRestartsScheduler() {
         let sut = makeSUT()
 
-        sut.refreshInterval = 600
+        sut.refreshInterval = 3_600
 
-        XCTAssertEqual(preferences.refreshInterval, 600)
-        XCTAssertEqual(scheduler.startedInterval, 600)
+        XCTAssertEqual(preferences.refreshInterval, 3_600)
+        XCTAssertEqual(scheduler.startedInterval, 3_600)
     }
 
     func test_givenValidURL_whenAddingSubstackFeed_thenAddsAndPersists() {

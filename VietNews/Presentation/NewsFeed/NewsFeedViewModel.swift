@@ -126,6 +126,9 @@ final class NewsFeedViewModel: ObservableObject {
 
     private func armSchedulerIfNeeded() {
         guard !isSchedulerArmed else { return }
+        // Off is a real choice, and honouring it means not arming the timer at all rather than
+        // arming it and discarding its ticks.
+        guard preferences.refreshInterval > 0 else { return }
         isSchedulerArmed = true
         scheduler.onTick = { [weak self] in
             guard let self else { return }
@@ -153,6 +156,15 @@ final class NewsFeedViewModel: ObservableObject {
         selectedCategory = category
         articles = []
         await reload()
+        // Changing category is the moment the reader tells us where they are going, so it is the
+        // moment worth warming what is next to it. Previously this only happened on a timer tick.
+        //
+        // Detached rather than awaited: warming a neighbour must never delay the category the
+        // reader actually asked for. Awaiting it here made selecting a category wait on two more
+        // fetches before it returned.
+        Task(priority: .background) { [weak self] in
+            await self?.prefetchAdjacentCategories()
+        }
     }
 
     func setLanguage(_ newLanguage: Language) async {
@@ -166,13 +178,19 @@ final class NewsFeedViewModel: ObservableObject {
         await reload()
     }
 
+    /// Warms the categories either side of this one *as the reader sees them*.
+    ///
+    /// This used to index `allCases` and then drop whatever was unavailable, so in a language
+    /// missing some categories it warmed a neighbour the reader could not reach and skipped the
+    /// one sitting next to them in the strip. The strip's own list is the one that matters.
     func prefetchAdjacentCategories() async {
-        let all = NewsCategory.allCases
-        guard let index = all.firstIndex(of: selectedCategory) else { return }
+        let visible = NewsCategory.allCases.filter { $0.isAvailable(in: language) }
+        guard let index = visible.firstIndex(of: selectedCategory) else { return }
+
         let neighbors = [index - 1, index + 1]
-            .filter(all.indices.contains)
-            .map { all[$0] }
-            .filter { $0.isAvailable(in: language) }
+            .filter(visible.indices.contains)
+            .map { visible[$0] }
+
         for category in neighbors {
             _ = try? await fetchNews.execute(category: category, language: language)
         }

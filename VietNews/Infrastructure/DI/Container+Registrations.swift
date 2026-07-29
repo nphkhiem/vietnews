@@ -112,6 +112,7 @@ extension Container {
             FetchNewsUseCase(
                 articleRepository: self.articleRepository(),
                 cacheRepository: self.cacheRepository(),
+                ttl: { self.userPreferences().cacheTTL },
                 articleLimit: { self.userPreferences().maxArticles }
             )
         }
