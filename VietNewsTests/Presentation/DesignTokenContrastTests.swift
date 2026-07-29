@@ -82,8 +82,14 @@ final class DesignTokenContrastTests: XCTestCase {
         }
     }
 
+    /// The caution rule marks a state the reader should notice, so it is held to the same
+    /// readability bar as text even though it is drawn as a rule.
+    func test_givenCautionRule_whenMeasured_thenIsDistinguishableFromTheBackground() throws {
+        try assertContrast("caution", on: "bg", atLeast: 3.0)
+    }
+
     func test_givenEveryToken_whenResolvedInBothAppearances_thenTheyActuallyDiffer() throws {
-        let names = ["bg", "surface", "hairline", "ink", "inkSecondary", "inkTertiary", "inkRead", "accent"]
+        let names = ["bg", "surface", "hairline", "ink", "inkSecondary", "inkTertiary", "inkRead", "accent", "caution"]
         for name in names {
             let dark = try color(name, dark: true)
             let light = try color(name, dark: false)

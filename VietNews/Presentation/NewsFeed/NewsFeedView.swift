@@ -2,6 +2,9 @@ import SwiftUI
 
 struct NewsFeedView: View {
     @ObservedObject var viewModel: NewsFeedViewModel
+    /// Passed in rather than observed here, so connectivity has one owner and the feed simply
+    /// renders what it is told.
+    let isOffline: Bool
     @State private var presentedArticle: Article?
     @Environment(\.scenePhase) private var scenePhase
 
@@ -18,6 +21,10 @@ struct NewsFeedView: View {
                         Task { await viewModel.selectCategory(category) }
                     }
                 )
+                // Fixed above the news rather than scrolled with it. A reader who is offline or
+                // missing sources needs that before they start reading, not when they happen to
+                // scroll back to the top.
+                banners
                 content
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -54,28 +61,55 @@ struct NewsFeedView: View {
                 .padding(.top, 8)
             }
         case .empty:
-            emptyState
+            recoverableState(
+                icon: "newspaper",
+                message: L10n.feedEmpty(viewModel.language) + "\n" + L10n.feedEmptyHint(viewModel.language)
+            )
         case .failed(let message):
-            failedState(message)
+            recoverableState(icon: "wifi.exclamationmark", message: message)
         case .loaded:
             articleList
         }
     }
 
+    @ViewBuilder
+    private var banners: some View {
+        // Connectivity first: when the device is offline, that explains everything below it and
+        // no other message adds anything.
+        if isOffline {
+            StatusBanner(
+                severity: .caution,
+                message: L10n.bannerOffline(viewModel.language),
+                detail: viewModel.lastUpdated.map { staleLabel($0) }
+            )
+        } else {
+            if let message = viewModel.refreshFailureMessage {
+                StatusBanner(severity: .problem, message: message)
+            }
+            if !viewModel.failedSources.isEmpty {
+                StatusBanner(severity: .problem, message: unavailableMessage)
+            }
+            if viewModel.isShowingStaleData, let updated = viewModel.lastUpdated {
+                StatusBanner(severity: .caution, message: staleLabel(updated))
+            }
+        }
+    }
+
+    /// Names the sources rather than saying "some sources", so the reader knows what they are
+    /// missing. The list is joined the way the reader's own language joins lists.
+    private var unavailableMessage: String {
+        let names = viewModel.failedSources.map(\.displayName)
+        let formatter = ListFormatter()
+        formatter.locale = viewModel.language.locale
+        guard let joined = formatter.string(from: names), !names.isEmpty else {
+            return L10n.feedSourcesUnavailable(viewModel.language)
+        }
+        return L10n.feedSourcesUnavailableNamed(viewModel.language, joined)
+    }
+
     private var articleList: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                if let message = viewModel.refreshFailureMessage {
-                    refreshFailureBanner(message)
-                }
-                if !viewModel.failedSources.isEmpty {
-                    unavailableBanner
-                }
-                if viewModel.isShowingStaleData, let updated = viewModel.lastUpdated {
-                    Text(staleLabel(updated))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
                 ForEach(Array(viewModel.articles.enumerated()), id: \.element.id) { index, article in
                     // The first article carries the category. Everything below it is uniform, so
                     // the eye has exactly one place to land.
@@ -111,53 +145,19 @@ struct NewsFeedView: View {
         presentedArticle = article
     }
 
-    private func refreshFailureBanner(_ message: String) -> some View {
-        Text(message)
-            .font(.caption)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
-            .padding(.horizontal)
-            .background(Color(.secondarySystemBackground))
-    }
-
-    private var unavailableBanner: some View {
-        Text(L10n.feedSourcesUnavailable(viewModel.language))
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
-            .background(Color(.secondarySystemBackground))
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: 12) {
-            Spacer()
-            Image(systemName: "newspaper")
-                .font(.largeTitle)
-                .foregroundStyle(.secondary)
-            Text(L10n.feedEmpty(viewModel.language))
-                .foregroundStyle(.secondary)
-            Spacer()
+    /// Both states are scrollable so pull to refresh works from them. Previously each was a
+    /// fixed stack, so a reader who reached one had no way out except changing category.
+    private func recoverableState(icon: String, message: String) -> some View {
+        ScrollView {
+            EmptyStateView(
+                systemImage: icon,
+                message: message,
+                actionTitle: L10n.feedRetry(viewModel.language),
+                action: { Task { await viewModel.load() } }
+            )
+            .padding(.top, Tokens.Space.xxl * 2)
         }
-    }
-
-    private func failedState(_ message: String) -> some View {
-        VStack(spacing: 12) {
-            Spacer()
-            Image(systemName: "wifi.exclamationmark")
-                .font(.largeTitle)
-                .foregroundStyle(.secondary)
-            Text(message)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-            Button(L10n.feedRetry(viewModel.language)) {
-                Task { await viewModel.load() }
-            }
-            .buttonStyle(.borderedProminent)
-            Spacer()
-        }
-        .padding()
+        .refreshable { await viewModel.refresh() }
     }
 
     private func staleLabel(_ date: Date) -> String {

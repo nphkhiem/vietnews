@@ -24,6 +24,9 @@ enum Tokens {
         /// Reserved for signal: the selected category, a source that is failing, and primary
         /// actions. Never decorative, because an accent spent everywhere signals nothing.
         static let accent = Color("Colors/accent")
+        /// Something the reader should know but need not act on, such as being offline. Distinct
+        /// from the accent, which marks a problem or an action.
+        static let caution = Color("Colors/caution")
         static let onAccent = Color("Colors/onAccent")
 
         static func source(_ source: NewsSource) -> Color {
