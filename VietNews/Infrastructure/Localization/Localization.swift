@@ -57,6 +57,16 @@ enum L10n: String, CaseIterable {
     case categorySocial = "category.social"
     case categoryGame = "category.game"
 
+    case sourcesTitle = "sources.title"
+    case sourcesSectionAttention = "sources.section.attention"
+    case sourcesSectionBuiltIn = "sources.section.builtIn"
+    case sourcesSectionYours = "sources.section.yours"
+    case sourcesUpdated = "sources.updated"
+    case sourcesLastWorked = "sources.lastWorked"
+    case sourcesLastWorkedNever = "sources.lastWorked.never"
+    case sourcesNotInLanguage = "sources.notInLanguage"
+    case sourcesManage = "sources.manage"
+
     case articleRead = "article.read"
     case thumbnailRetry = "thumbnail.retry"
 
@@ -78,6 +88,7 @@ enum L10nPlural: String {
     case hoursAgo = "time.hoursAgo"
     case daysAgo = "time.daysAgo"
     case settingsInterval = "settings.interval"
+    case sourcesCategoryCount = "sources.categoryCount"
 
     func callAsFunction(_ language: Language, count: Int) -> String {
         String(format: Localization.string(rawValue, language: language), locale: language.locale, count)

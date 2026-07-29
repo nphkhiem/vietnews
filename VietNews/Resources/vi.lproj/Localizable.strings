@@ -64,3 +64,14 @@
 
 /* Images */
 "thumbnail.retry" = "Tải lại ảnh";
+
+/* Sources */
+"sources.title" = "Nguồn tin";
+"sources.section.attention" = "Cần chú ý";
+"sources.section.builtIn" = "Nguồn có sẵn";
+"sources.section.yours" = "Nguồn của bạn";
+"sources.updated" = "Cập nhật %@";
+"sources.lastWorked" = "Lần cuối hoạt động %@.";
+"sources.lastWorked.never" = "Chưa hoạt động lần nào.";
+"sources.notInLanguage" = "Không có nội dung tiếng này";
+"sources.manage" = "Quản lý";

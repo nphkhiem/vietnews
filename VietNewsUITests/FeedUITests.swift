@@ -67,6 +67,22 @@ final class FeedUITests: XCTestCase {
         XCTAssertTrue(app.buttons[A11y.settingsLanguageSegment("vi")].waitForExistence(timeout: 5))
     }
 
+    /// The sources screen is where a broken source stops being a silent hole in the feed, so the
+    /// route to it is worth holding onto.
+    func test_givenSettingsShown_whenOpeningSources_thenEverySourceIsListedWithASwitch() {
+        openSettings()
+        let row = app.buttons[A11y.settingsSources]
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+
+        row.tap()
+
+        // Matched on any element type: the row combines its children, so whether it surfaces as
+        // a switch or as a plain element is SwiftUI's business, not the test's.
+        let bbc = app.descendants(matching: .any)[A11y.sourcesRow(builtIn: "bbc")]
+        XCTAssertTrue(bbc.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.switches.firstMatch.exists)
+    }
+
     // MARK: - Helpers
 
     private enum PickerLanguage: String {
@@ -90,6 +106,8 @@ final class FeedUITests: XCTestCase {
 /// query.
 enum A11y {
     static func settingsLanguageSegment(_ code: String) -> String { "settings.language.\(code)" }
+    static let settingsSources = "settings.sources"
+    static func sourcesRow(builtIn source: String) -> String { "sources.row.builtIn:\(source)" }
 
     static func feedCategory(_ rawValue: String) -> String { "feed.category.\(rawValue)" }
     static func feedRow(category: String, index: Int) -> String { "feed.row.\(category).\(index)" }

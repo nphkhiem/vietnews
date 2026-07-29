@@ -25,17 +25,38 @@ final class SettingsViewModel: ObservableObject {
 
     private let preferences: UserPreferences
     private let scheduler: RefreshScheduling
+    private let sourceHealth: SourceHealthRepository
+    private let serves: (NewsSource, NewsCategory) -> Bool
     /// Exposed so the storage screen can report and clear what is held, which is the only place
     /// in the app that can see the cache at all.
     let cacheRepository: CacheRepository
 
-    init(preferences: UserPreferences, scheduler: RefreshScheduling, cacheRepository: CacheRepository) {
+    init(
+        preferences: UserPreferences,
+        scheduler: RefreshScheduling,
+        cacheRepository: CacheRepository,
+        sourceHealth: SourceHealthRepository,
+        serves: @escaping (NewsSource, NewsCategory) -> Bool
+    ) {
         self.preferences = preferences
         self.scheduler = scheduler
         self.cacheRepository = cacheRepository
+        self.sourceHealth = sourceHealth
+        self.serves = serves
         self.refreshInterval = preferences.refreshInterval
         self.maxArticles = preferences.maxArticles
         self.substackFeeds = preferences.substackFeeds
+    }
+
+    /// The sources screen is reachable from here and from a failing-sources banner. Both routes
+    /// build it the same way, so neither becomes a second, subtly different screen.
+    func makeSourcesViewModel(language: Language) -> SourcesViewModel {
+        SourcesViewModel(
+            health: sourceHealth,
+            preferences: preferences,
+            language: language,
+            serves: serves
+        )
     }
 
     func addSubstackFeed(urlString: String, category: NewsCategory) -> Bool {
