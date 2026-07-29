@@ -10,6 +10,7 @@
   <img alt="SwiftUI" src="https://img.shields.io/badge/SwiftUI-0071E3?logo=swift&logoColor=white">
   <img alt="iOS 16+" src="https://img.shields.io/badge/iOS-16.0%2B-000000?logo=apple&logoColor=white">
   <img alt="iPhone only" src="https://img.shields.io/badge/iPhone-only-8E8E93">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
 </p>
 
 VNExpress, The New York Times, BBC News, Eurogamer and any RSS, Atom or JSON feed you add, merged
@@ -216,3 +217,7 @@ Two suites are worth knowing about:
 4. Open a pull request describing what changed and why
 
 Bug reports and ideas are welcome as GitHub issues.
+
+## License
+
+MIT, see [LICENSE](LICENSE). Fork it, extend it, ship your own version.
