@@ -109,6 +109,24 @@ final class FeedUITests: XCTestCase {
         )
     }
 
+    /// Validation happens while the reader types, not on submit. An insecure address is our own
+    /// rule and is refused before anything is attempted, so this needs no network.
+    func test_givenAnInsecureAddress_whenTyped_thenTheSheetSaysSoBeforeAnythingIsAttempted() {
+        openSettings()
+        app.buttons[A11y.settingsSources].tap()
+        let add = app.buttons[A11y.sourcesAddFeed]
+        XCTAssertTrue(add.waitForExistence(timeout: 5))
+        add.tap()
+
+        let field = app.textFields[A11y.subscribeAddress]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText("http://example.com/feed")
+
+        XCTAssertTrue(app.staticTexts[A11y.subscribeProblem].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons[A11y.subscribeAction].isEnabled)
+    }
+
     // MARK: - Helpers
 
     private enum PickerLanguage: String {
@@ -144,4 +162,8 @@ enum A11y {
     static func savedRow(index: Int) -> String { "saved.row.\(index)" }
     static let savedEmpty = "saved.empty"
     static let articleSaveAction = "article.action.save"
+    static let sourcesAddFeed = "sources.addFeed"
+    static let subscribeAddress = "subscribe.address"
+    static let subscribeProblem = "subscribe.problem"
+    static let subscribeAction = "subscribe.action"
 }

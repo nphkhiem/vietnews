@@ -11,9 +11,17 @@ struct SourcesView: View {
     /// mid-interaction.
     @StateObject private var viewModel: SourcesViewModel
     let language: Language
+    let makeSubscriptionViewModel: () -> FeedSubscriptionViewModel
 
-    init(language: Language, makeViewModel: @escaping () -> SourcesViewModel) {
+    @State private var isAddingFeed = false
+
+    init(
+        language: Language,
+        makeSubscriptionViewModel: @escaping () -> FeedSubscriptionViewModel,
+        makeViewModel: @escaping () -> SourcesViewModel
+    ) {
         self.language = language
+        self.makeSubscriptionViewModel = makeSubscriptionViewModel
         _viewModel = StateObject(wrappedValue: makeViewModel())
     }
 
@@ -30,9 +38,24 @@ struct SourcesView: View {
                     rows(viewModel.builtIn)
                 }
 
-                if !viewModel.userFeeds.isEmpty {
-                    SettingsGroup(title: L10n.sourcesSectionYours(language)) {
-                        rows(viewModel.userFeeds)
+                SettingsGroup(title: L10n.sourcesSectionYours(language)) {
+                    VStack(spacing: 0) {
+                        if !viewModel.userFeeds.isEmpty {
+                            rows(viewModel.userFeeds)
+                            Divider().overlay(Tokens.Palette.hairline)
+                        }
+
+                        // The row the approved mockup showed, held back until ticket 31 built
+                        // the sheet behind it. It goes somewhere now.
+                        Button { isAddingFeed = true } label: {
+                            SettingsLabelledRow(
+                                title: L10n.sourcesAdd(language),
+                                detail: L10n.sourcesAddDetail(language),
+                                showsChevron: true
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("sources.addFeed")
                     }
                 }
             }
@@ -41,6 +64,17 @@ struct SourcesView: View {
         .background(Tokens.Palette.background)
         .navigationTitle(L10n.sourcesTitle(language))
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $isAddingFeed) {
+            FeedSubscriptionSheet(
+                viewModel: makeSubscriptionViewModel(),
+                language: language,
+                onFinished: {
+                    isAddingFeed = false
+                    // The new feed belongs in the list behind the sheet straight away.
+                    viewModel.reload()
+                }
+            )
+        }
     }
 
     private func rows(_ listings: [SourceListing]) -> some View {

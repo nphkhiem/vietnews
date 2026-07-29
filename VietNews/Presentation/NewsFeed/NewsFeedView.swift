@@ -8,6 +8,7 @@ struct NewsFeedView: View {
     /// Built here rather than passed in, so the banner's route to Sources needs nothing from the
     /// feed's own view model.
     let makeSourcesViewModel: (Language) -> SourcesViewModel
+    let makeSubscriptionViewModel: () -> FeedSubscriptionViewModel
     @ObservedObject var savedArticles: SavedArticleStore
     /// One presentation for the list rather than one per row and one per destination, so the
     /// context menu and the accessibility action reach the same place.
@@ -40,9 +41,11 @@ struct NewsFeedView: View {
             // outright. The stack stays because the banner pushes Sources from here.
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(isPresented: $isShowingSources) {
-                SourcesView(language: viewModel.language) {
-                    makeSourcesViewModel(viewModel.language)
-                }
+                SourcesView(
+                    language: viewModel.language,
+                    makeSubscriptionViewModel: makeSubscriptionViewModel,
+                    makeViewModel: { makeSourcesViewModel(viewModel.language) }
+                )
             }
         }
         .task { await viewModel.start() }

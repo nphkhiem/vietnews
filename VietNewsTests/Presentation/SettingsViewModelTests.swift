@@ -29,7 +29,9 @@ final class SettingsViewModelTests: XCTestCase {
             scheduler: scheduler,
             cacheRepository: cacheRepo,
             sourceHealth: MockSourceHealthRepository(),
-            serves: { _, _ in true }
+            serves: { _, _ in true },
+            network: StubNetworkService(),
+            parser: StubRSSParser()
         )
     }
 
