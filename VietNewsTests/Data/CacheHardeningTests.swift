@@ -26,64 +26,92 @@ final class CacheHardeningTests: XCTestCase {
     }
 
     func test_givenAnEntryWrittenNow_whenLoaded_thenItIsServed() throws {
+        // given
         let sut = DiskCacheRepository(directory: directory)
+
+        // when
         try sut.save(entry(), category: .sport, language: .english)
 
+        // then
         XCTAssertNotNil(sut.load(category: .sport, language: .english))
     }
 
     /// Decoding succeeding is not the same as the entry meaning what this version thinks it
     /// means. A plausible wrong answer is worse than a refetch.
     func test_givenAnEntryFromAnotherSchema_whenLoaded_thenItIsDiscarded() throws {
+        // given
         let sut = DiskCacheRepository(directory: directory)
+
+        // when
         try sut.save(entry(schemaVersion: 99), category: .sport, language: .english)
 
+        // then
         XCTAssertNil(sut.load(category: .sport, language: .english))
     }
 
     /// Entries written before versioning existed decode fine and are still stale.
     func test_givenAnEntryFromBeforeVersioning_whenLoaded_thenItIsDiscarded() throws {
+        // given
         let sut = DiskCacheRepository(directory: directory)
+
+        // when
         try sut.save(entry(schemaVersion: nil), category: .sport, language: .english)
 
+        // then
         XCTAssertNil(sut.load(category: .sport, language: .english))
     }
 
     func test_givenADiscardedEntry_whenLoadedAgain_thenTheFileIsGone() throws {
+        // given
         let sut = DiskCacheRepository(directory: directory)
         try sut.save(entry(schemaVersion: 99), category: .sport, language: .english)
 
+        // when
         _ = sut.load(category: .sport, language: .english)
 
+        // then
         XCTAssertEqual(sut.totalSizeInBytes(), 0)
     }
 
     /// A cache that only grew was the one part of the app that could not be reclaimed.
     func test_givenMoreThanTheSizeLimit_whenSaving_thenItEvictsDownToIt() throws {
+        // given
         // Small enough that a couple of entries exceed it, so eviction is exercised rather than
         // assumed.
         let sut = DiskCacheRepository(directory: directory, sizeLimitInBytes: 2_000)
 
+        // when
         for category in [NewsCategory.sport, .world, .finance, .technology] {
             try sut.save(entry(articles: 12), category: category, language: .english)
         }
 
+        // then
         XCTAssertLessThanOrEqual(sut.totalSizeInBytes(), 2_000)
     }
 
     /// The entry just written is never the one evicted to make room for itself.
     func test_givenEvictionRuns_whenItFinishes_thenTheNewestEntrySurvives() throws {
+        // given
         let sut = DiskCacheRepository(directory: directory, sizeLimitInBytes: 2_000)
         for category in [NewsCategory.sport, .world, .finance] {
             try sut.save(entry(articles: 12), category: category, language: .english)
         }
 
+        // when
         try sut.save(entry(articles: 1), category: .technology, language: .english)
 
+        // then
         XCTAssertNotNil(sut.load(category: .technology, language: .english))
     }
 
     func test_givenTheDefaultDirectory_whenAsked_thenItResolvesWithoutCrashing() {
-        XCTAssertTrue(DiskCacheRepository.defaultDirectory().path.hasSuffix("articles"))
+        // given
+        let sut = DiskCacheRepository.self
+
+        // when
+        let directory = sut.defaultDirectory()
+
+        // then
+        XCTAssertTrue(directory.path.hasSuffix("articles"))
     }
 }

@@ -45,12 +45,15 @@ final class RemoteArticleRepositoryTests: XCTestCase {
     }
 
     func test_givenMultipleSuccessfulSources_whenFetching_thenMergesSortsAndCapsAt15() async throws {
+        // given
         let a = FakeAdapter(source: .vnexpress, result: .success(articles(10, source: .vnexpress, startingAt: 1_000)))
         let b = FakeAdapter(source: .eurogamer, result: .success(articles(10, source: .eurogamer, startingAt: 2_000)))
         let sut = RemoteArticleRepository(adapters: [a, b])
 
+        // when
         let result = try await sut.fetchArticles(category: .sport, language: .english)
 
+        // then
         XCTAssertEqual(result.articles.count, 15)
         XCTAssertTrue(result.failedSources.isEmpty)
         // newest first: all 10 eurogamer (epoch 2000+) precede vnexpress
@@ -60,75 +63,89 @@ final class RemoteArticleRepositoryTests: XCTestCase {
     }
 
     func test_givenOneSourceFails_whenFetching_thenReportsFailedSourceAndReturnsRest() async throws {
+        // given
         let ok = FakeAdapter(source: .vnexpress, result: .success(articles(3, source: .vnexpress, startingAt: 1_000)))
         let bad = FakeAdapter(source: .bbc, result: .failure(NewsError.networkUnavailable))
         let sut = RemoteArticleRepository(adapters: [ok, bad])
 
+        // when
         let result = try await sut.fetchArticles(category: .sport, language: .english)
 
+        // then
         XCTAssertEqual(result.articles.count, 3)
         XCTAssertEqual(result.failedSources, [.bbc])
     }
 
     func test_givenAllSourcesFail_whenFetching_thenThrowsNamingThoseSources() async {
+        // given
         let bad1 = FakeAdapter(source: .vnexpress, result: .failure(NewsError.networkUnavailable))
         let bad2 = FakeAdapter(source: .bbc, result: .failure(NewsError.networkUnavailable))
         let sut = RemoteArticleRepository(adapters: [bad1, bad2])
 
-        do {
+        // when
+        let thrown = await errorThrown {
             _ = try await sut.fetchArticles(category: .sport, language: .english)
-            XCTFail("Expected throw")
-        } catch {
-            guard case .allSourcesFailed(let sources, let cause) = error as? NewsError else {
-                return XCTFail("Expected allSourcesFailed, got \(error)")
-            }
-            XCTAssertEqual(Set(sources), [.vnexpress, .bbc])
-            XCTAssertEqual(cause, .unreachable, "both adapters failed with the same cause")
         }
+
+        // then
+        guard case .allSourcesFailed(let sources, let cause) = thrown as? NewsError else {
+            return XCTFail("Expected allSourcesFailed, got \(String(describing: thrown))")
+        }
+        XCTAssertEqual(Set(sources), [.vnexpress, .bbc])
+        XCTAssertEqual(cause, .unreachable, "both adapters failed with the same cause")
     }
 
     /// An adapter that does not support the request is not a failure, so it must never appear in
     /// the reported list even when every supported adapter fails.
     func test_givenAllSupportedSourcesFail_whenFetching_thenUnsupportedSourcesAreNotNamed() async {
+        // given
         let bad = FakeAdapter(source: .vnexpress, result: .failure(NewsError.networkUnavailable))
         let unsupported = FakeAdapter(source: .nyt, supported: false)
         let sut = RemoteArticleRepository(adapters: [bad, unsupported])
 
-        do {
+        // when
+        let thrown = await errorThrown {
             _ = try await sut.fetchArticles(category: .sport, language: .english)
-            XCTFail("Expected throw")
-        } catch {
-            guard case .allSourcesFailed(let sources, _) = error as? NewsError else {
-                return XCTFail("Expected allSourcesFailed, got \(error)")
-            }
-            XCTAssertEqual(sources, [.vnexpress])
         }
+
+        // then
+        guard case .allSourcesFailed(let sources, _) = thrown as? NewsError else {
+            return XCTFail("Expected allSourcesFailed, got \(String(describing: thrown))")
+        }
+        XCTAssertEqual(sources, [.vnexpress])
     }
 
     func test_givenUnsupportedAdapter_whenFetching_thenSkipsWithoutCountingAsFailure() async throws {
+        // given
         let unsupported = FakeAdapter(
             source: .nyt, supported: false, result: .failure(NewsError.networkUnavailable)
         )
         let ok = FakeAdapter(source: .eurogamer, result: .success(articles(2, source: .eurogamer, startingAt: 1_000)))
         let sut = RemoteArticleRepository(adapters: [unsupported, ok])
 
+        // when
         let result = try await sut.fetchArticles(category: .game, language: .english)
 
+        // then
         XCTAssertEqual(result.articles.count, 2)
         XCTAssertTrue(result.failedSources.isEmpty)
     }
 
     func test_givenNoSupportingAdapters_whenFetching_thenReturnsEmptyResult() async throws {
+        // given
         let unsupported = FakeAdapter(source: .nyt, supported: false)
         let sut = RemoteArticleRepository(adapters: [unsupported])
 
+        // when
         let result = try await sut.fetchArticles(category: .game, language: .vietnamese)
 
+        // then
         XCTAssertTrue(result.articles.isEmpty)
         XCTAssertTrue(result.failedSources.isEmpty)
     }
 
     func test_givenSlowSource_whenExceedingTimeout_thenReportedAsFailedSource() async throws {
+        // given
         let slow = FakeAdapter(
             source: .bbc,
             result: .success(articles(5, source: .bbc, startingAt: 9_000)),
@@ -137,57 +154,67 @@ final class RemoteArticleRepositoryTests: XCTestCase {
         let fast = FakeAdapter(source: .eurogamer, result: .success(articles(2, source: .eurogamer, startingAt: 1_000)))
         let sut = RemoteArticleRepository(adapters: [slow, fast], perSourceTimeout: 0.2)
 
+        // when
         let result = try await sut.fetchArticles(category: .sport, language: .english)
 
+        // then
         XCTAssertEqual(result.articles.count, 2)
         XCTAssertEqual(result.failedSources, [.bbc])
     }
 
     func test_givenCustomMaxArticles_whenFetching_thenCapsAtConfiguredValue() async throws {
+        // given
         let a = FakeAdapter(source: .vnexpress, result: .success(articles(40, source: .vnexpress, startingAt: 1_000)))
         let sut = RemoteArticleRepository(adapters: [a], maxArticles: { 30 })
 
+        // when
         let result = try await sut.fetchArticles(category: .sport, language: .english)
 
+        // then
         XCTAssertEqual(result.articles.count, 30)
     }
 
     func test_givenSourcesFailingForDifferentReasons_whenAllFail_thenReportsAMixedCause() async {
+        // given
         let timedOut = FakeAdapter(source: .vnexpress, result: .failure(NewsError.sourceTimeout(.vnexpress)))
         let refused = FakeAdapter(source: .bbc, result: .failure(NewsError.invalidResponse(statusCode: 403)))
         let sut = RemoteArticleRepository(adapters: [timedOut, refused])
 
-        do {
+        // when
+        let thrown = await errorThrown {
             _ = try await sut.fetchArticles(category: .sport, language: .english)
-            XCTFail("Expected throw")
-        } catch {
-            guard case .allSourcesFailed(_, let cause) = error as? NewsError else {
-                return XCTFail("Expected allSourcesFailed, got \(error)")
-            }
-            XCTAssertEqual(cause, .mixed)
         }
+
+        // then
+        guard case .allSourcesFailed(_, let cause) = thrown as? NewsError else {
+            return XCTFail("Expected allSourcesFailed, got \(String(describing: thrown))")
+        }
+        XCTAssertEqual(cause, .mixed)
     }
 
     func test_givenEverySourceRefusing_whenAllFail_thenReportsRejected() async {
+        // given
         let a = FakeAdapter(source: .vnexpress, result: .failure(NewsError.invalidResponse(statusCode: 403)))
         let b = FakeAdapter(source: .bbc, result: .failure(NewsError.invalidResponse(statusCode: 404)))
         let sut = RemoteArticleRepository(adapters: [a, b])
 
-        do {
+        // when
+        let thrown = await errorThrown {
             _ = try await sut.fetchArticles(category: .sport, language: .english)
-            XCTFail("Expected throw")
-        } catch {
-            guard case .allSourcesFailed(_, let cause) = error as? NewsError else {
-                return XCTFail("Expected allSourcesFailed, got \(error)")
-            }
-            XCTAssertEqual(cause, .rejected)
         }
+
+        // then
+        guard case .allSourcesFailed(_, let cause) = thrown as? NewsError else {
+            return XCTFail("Expected allSourcesFailed, got \(String(describing: thrown))")
+        }
+        XCTAssertEqual(cause, .rejected)
     }
 
     /// Publishers reissue a story under a new headline at the same address, which gives two
     /// articles one identifier. A SwiftUI list handed duplicate identifiers renders one of them
     /// as an empty row, which is exactly what was observed in the feed.
     func test_givenTwoArticlesSharingAURL_whenFetching_thenOnlyOneSurvives() async throws {
+        // given
         let url = "https://example.com/same-story"
         let reissued = TestFactory.article(
             url: url, title: "Reissued headline", source: .bbc,
@@ -205,8 +232,10 @@ final class RemoteArticleRepositoryTests: XCTestCase {
             adapters: [FakeAdapter(source: .bbc, result: .success([reissued, original, other]))]
         )
 
+        // when
         let result = try await sut.fetchArticles(category: .sport, language: .english)
 
+        // then
         XCTAssertEqual(result.articles.count, 2)
         XCTAssertEqual(Set(result.articles.map(\.id)).count, 2, "identifiers must be unique")
         XCTAssertEqual(result.articles.first?.title, "Reissued headline", "the newest is kept")
@@ -215,6 +244,7 @@ final class RemoteArticleRepositoryTests: XCTestCase {
     /// An aggregator whose feed renders as one publication is not doing its job. BBC took nearly
     /// every slot in the English categories purely by publishing more often.
     func test_givenOneProlificSource_whenFetching_thenItDoesNotFillTheCategory() async throws {
+        // given
         let prolific = FakeAdapter(
             source: .bbc, result: .success(articles(30, source: .bbc, startingAt: 5_000))
         )
@@ -222,10 +252,12 @@ final class RemoteArticleRepositoryTests: XCTestCase {
             source: .nyt, result: .success(articles(5, source: .nyt, startingAt: 1_000))
         )
         let sut = RemoteArticleRepository(adapters: [prolific, occasional], maxArticles: { 12 })
-
         let result = try await sut.fetchArticles(category: .world, language: .english)
 
+        // when
         let bbc = result.articles.filter { $0.source == .bbc }.count
+
+        // then
         XCTAssertEqual(result.articles.count, 12)
         XCTAssertLessThanOrEqual(bbc, 8, "one source must not dominate: \(bbc) of 12")
         XCTAssertGreaterThan(result.articles.filter { $0.source == .nyt }.count, 0)
@@ -233,25 +265,31 @@ final class RemoteArticleRepositoryTests: XCTestCase {
 
     /// The cap decides which articles appear, never what order they appear in.
     func test_givenTheShareCap_whenFetching_thenOrderingIsStillNewestFirst() async throws {
+        // given
         let a = FakeAdapter(source: .bbc, result: .success(articles(20, source: .bbc, startingAt: 5_000)))
         let b = FakeAdapter(source: .nyt, result: .success(articles(20, source: .nyt, startingAt: 1_000)))
         let sut = RemoteArticleRepository(adapters: [a, b], maxArticles: { 15 })
-
         let result = try await sut.fetchArticles(category: .world, language: .english)
 
+        // when
         let dates = result.articles.map { $0.publishedAt ?? .distantPast }
+
+        // then
         XCTAssertEqual(dates, dates.sorted(by: >))
     }
 
     /// A category served by a single source must not be left short by its own share limit.
     func test_givenOnlyOneSourceAvailable_whenFetching_thenTheCategoryIsStillFull() async throws {
+        // given
         let only = FakeAdapter(
             source: .vnexpress, result: .success(articles(30, source: .vnexpress, startingAt: 1_000))
         )
         let sut = RemoteArticleRepository(adapters: [only], maxArticles: { 15 })
 
+        // when
         let result = try await sut.fetchArticles(category: .sport, language: .vietnamese)
 
+        // then
         XCTAssertEqual(result.articles.count, 15)
     }
 }

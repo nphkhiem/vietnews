@@ -36,26 +36,37 @@ final class SettingsViewModelTests: XCTestCase {
     }
 
     func test_givenStoredPreferences_whenInitializing_thenLoadsInitialValues() {
+        // given
         preferences.refreshInterval = 900
+
+        // when
         let sut = makeSUT()
+
+        // then
         XCTAssertEqual(sut.refreshInterval, 900)
         XCTAssertEqual(sut.substackFeeds.count, 2) // defaults
     }
 
     func test_givenNewInterval_whenSet_thenPersistsAndRestartsScheduler() {
+        // given
         let sut = makeSUT()
 
+        // when
         sut.refreshInterval = 3_600
 
+        // then
         XCTAssertEqual(preferences.refreshInterval, 3_600)
         XCTAssertEqual(scheduler.startedInterval, 3_600)
     }
 
     func test_givenValidURL_whenAddingSubstackFeed_thenAddsAndPersists() {
+        // given
         let sut = makeSUT()
 
+        // when
         let added = sut.addSubstackFeed(urlString: "myletter.substack.com", category: .technology)
 
+        // then
         XCTAssertTrue(added)
         XCTAssertEqual(sut.substackFeeds.count, 3)
         XCTAssertEqual(
@@ -66,40 +77,62 @@ final class SettingsViewModelTests: XCTestCase {
     }
 
     func test_givenInvalidURL_whenAddingSubstackFeed_thenReturnsFalse() {
+        // given
         let sut = makeSUT()
-        XCTAssertFalse(sut.addSubstackFeed(urlString: "", category: .work))
-        XCTAssertFalse(sut.addSubstackFeed(urlString: "not a url", category: .work))
+        let invalid = ["", "not a url"]
+
+        // when
+        let added = invalid.map { sut.addSubstackFeed(urlString: $0, category: .work) }
+
+        // then
+        XCTAssertEqual(added, [false, false])
         XCTAssertEqual(sut.substackFeeds.count, 2)
     }
 
     func test_givenDuplicateURL_whenAddingSubstackFeed_thenReturnsFalse() {
+        // given
         let sut = makeSUT()
-        XCTAssertFalse(
-            sut.addSubstackFeed(urlString: "https://www.lennysnewsletter.com/feed", category: .work)
-        )
+        let alreadyFollowed = "https://www.lennysnewsletter.com/feed"
+
+        // when
+        let added = sut.addSubstackFeed(urlString: alreadyFollowed, category: .work)
+
+        // then
+        XCTAssertFalse(added)
         XCTAssertEqual(sut.substackFeeds.count, 2)
     }
 
     func test_givenExistingFeed_whenRemoving_thenRemovesAndPersists() {
+        // given
         let sut = makeSUT()
 
+        // when
         sut.removeSubstackFeed(at: IndexSet(integer: 0))
 
+        // then
         XCTAssertEqual(sut.substackFeeds.count, 1)
         XCTAssertEqual(preferences.substackFeeds.count, 1)
     }
 
     func test_givenStoredMaxArticles_whenInitializing_thenLoadsFromPreferences() {
+        // given
         preferences.maxArticles = 50
+
+        // when
         let sut = makeSUT()
+
+        // then
         XCTAssertEqual(sut.maxArticles, 50)
     }
 
     func test_givenChangingMaxArticles_whenSet_thenPersistsAndPreservesCache() {
+        // given
         let sut = makeSUT()
 
+        // when
         sut.maxArticles = 30
 
+        // then
         XCTAssertEqual(preferences.maxArticles, 30)
         XCTAssertEqual(cacheRepo.clearAllCallCount, 0, "cached categories must survive a limit change")
     }

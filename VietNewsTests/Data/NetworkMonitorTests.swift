@@ -21,34 +21,43 @@ final class FakeNetworkPathMonitor: NetworkPathMonitoring {
 
 final class NetworkMonitorTests: XCTestCase {
     func test_givenDefaultState_whenMonitorStarts_thenIsOnlineIsTrue() {
+        // given
         let fakeMonitor = FakeNetworkPathMonitor()
 
+        // when
         let sut = NetworkMonitor(monitor: fakeMonitor)
 
+        // then
         XCTAssertTrue(sut.isOnline)
         XCTAssertEqual(fakeMonitor.startCallCount, 1)
     }
 
     func test_givenPathBecomesUnsatisfied_whenPathUpdateReceived_thenIsOnlineBecomesFalse() {
+        // given
         let fakeMonitor = FakeNetworkPathMonitor()
         let sut = NetworkMonitor(monitor: fakeMonitor)
-
         fakeMonitor.simulate(.unsatisfied)
+
+        // when
         waitForMainQueue()
 
+        // then
         XCTAssertFalse(sut.isOnline)
     }
 
     func test_givenOfflinePath_whenPathBecomesSatisfiedAgain_thenIsOnlineBecomesTrue() {
+        // given
         let fakeMonitor = FakeNetworkPathMonitor()
         let sut = NetworkMonitor(monitor: fakeMonitor)
         fakeMonitor.simulate(.unsatisfied)
-        waitForMainQueue()
-        XCTAssertFalse(sut.isOnline)
 
+        // when
+        waitForMainQueue()
+
+        // then
+        XCTAssertFalse(sut.isOnline)
         fakeMonitor.simulate(.satisfied)
         waitForMainQueue()
-
         XCTAssertTrue(sut.isOnline)
     }
 

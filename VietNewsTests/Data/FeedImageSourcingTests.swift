@@ -15,10 +15,13 @@ final class FeedImageSourcingTests: XCTestCase {
     /// BBC publishes `media:thumbnail` and nothing else. Every one of its articles measured as
     /// having no image, which read as a property of the feed rather than of our parser.
     func test_givenFeedUsingMediaThumbnail_whenParsing_thenEveryItemHasAnImage() throws {
+        // given
         let sut = FeedKitRSSParser(parsingSource: .bbc)
 
+        // when
         let items = try sut.parse(try fixture("bbc_media_thumbnail"))
 
+        // then
         XCTAssertFalse(items.isEmpty)
         for item in items {
             XCTAssertNotNil(item.imageURL, "no image for \(item.title)")
@@ -26,10 +29,13 @@ final class FeedImageSourcingTests: XCTestCase {
     }
 
     func test_givenFeedUsingMediaContent_whenParsing_thenEveryItemHasAnImage() throws {
+        // given
         let sut = FeedKitRSSParser(parsingSource: .eurogamer)
 
+        // when
         let items = try sut.parse(try fixture("eurogamer_media_content"))
 
+        // then
         XCTAssertFalse(items.isEmpty)
         for item in items {
             XCTAssertNotNil(item.imageURL, "no image for \(item.title)")
@@ -39,10 +45,13 @@ final class FeedImageSourcingTests: XCTestCase {
     /// The existing paths must keep working, since VNExpress relies on an image tag inside the
     /// description and other feeds use an enclosure.
     func test_givenFeedUsingAnImageTagInTheDescription_whenParsing_thenStillFindsIt() throws {
+        // given
         let sut = FeedKitRSSParser(parsingSource: .vnexpress)
 
+        // when
         let items = try sut.parse(try fixture("vnexpress_sport"))
 
+        // then
         XCTAssertFalse(items.isEmpty)
         XCTAssertNotNil(items.first?.imageURL)
     }
@@ -50,33 +59,45 @@ final class FeedImageSourcingTests: XCTestCase {
     /// Feeds list renditions in no reliable order, and the widest is the one that survives being
     /// shown as a full width lead.
     func test_givenSeveralThumbnails_whenParsing_thenTakesTheWidest() throws {
+        // given
         let feed = Self.rss(item: """
         <media:thumbnail width="240" height="135" url="https://example.com/small.jpg"/>
         <media:thumbnail width="976" height="549" url="https://example.com/large.jpg"/>
         <media:thumbnail width="480" height="270" url="https://example.com/medium.jpg"/>
         """)
 
+        // when
         let items = try FeedKitRSSParser().parse(Data(feed.utf8))
 
+        // then
         XCTAssertEqual(items.first?.imageURL?.absoluteString, "https://example.com/large.jpg")
     }
 
     /// A media:content element describes video and audio too, so it is only usable when it says
     /// which it is.
     func test_givenMediaContentThatIsNotAnImage_whenParsing_thenIgnoresIt() throws {
+        // given
         let feed = Self.rss(item: """
         <media:content medium="video" url="https://example.com/clip.mp4"/>
         <media:thumbnail width="300" url="https://example.com/poster.jpg"/>
         """)
 
+        // when
         let items = try FeedKitRSSParser().parse(Data(feed.utf8))
 
+        // then
         XCTAssertEqual(items.first?.imageURL?.absoluteString, "https://example.com/poster.jpg")
     }
 
     func test_givenItemWithNoImageAnywhere_whenParsing_thenStillProducesTheArticle() throws {
-        let items = try FeedKitRSSParser().parse(Data(Self.rss(item: "").utf8))
+        // given
+        let sut = FeedKitRSSParser()
+        let data = Data(Self.rss(item: "").utf8)
 
+        // when
+        let items = try sut.parse(data)
+
+        // then
         XCTAssertEqual(items.count, 1)
         XCTAssertNil(items.first?.imageURL)
         XCTAssertEqual(items.first?.title, "Headline")
@@ -101,10 +122,13 @@ final class FeedImageSourcingTests: XCTestCase {
 /// Covers asking a width-templated CDN for a rendition that suits what is being displayed.
 final class ImageVariantTests: XCTestCase {
     func test_givenBBCTemplatedURL_whenRequestingALargeWidth_thenRewritesIt() {
+        // given
         let url = URL(string: "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/ab/live/x.jpg")!
 
+        // when
         let result = ImageVariant.url(url, targetingWidth: 900)
 
+        // then
         XCTAssertEqual(
             result.absoluteString,
             "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/ab/live/x.jpg"
@@ -112,17 +136,24 @@ final class ImageVariantTests: XCTestCase {
     }
 
     func test_givenTemplatedURL_whenRequestingASmallWidth_thenLeavesTheAdvertisedOne() {
+        // given
         let url = URL(string: "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/ab/live/x.jpg")!
 
+        // when
         // The advertised rendition is known to exist; a narrower one may not.
+
+        // then
         XCTAssertEqual(ImageVariant.url(url, targetingWidth: 100), url)
     }
 
     func test_givenVNExpressResizeURL_whenRequestingALargeWidth_thenRewritesIt() {
+        // given
         let url = URL(string: "https://i1-vnexpress.vnecdn.net/resize_320x180/2026/07/a.jpg")!
 
+        // when
         let result = ImageVariant.url(url, targetingWidth: 700)
 
+        // then
         XCTAssertTrue(
             result.absoluteString.contains("resize_800x180"),
             "expected a wider rendition, got \(result.absoluteString)"
@@ -131,15 +162,24 @@ final class ImageVariantTests: XCTestCase {
 
     /// Guessing at an unfamiliar URL's structure risks turning a working image into a 404.
     func test_givenUntemplatedURL_whenRequesting_thenReturnsItUnchanged() {
+        // given
         let url = URL(string: "https://assetsio.gnwcdn.com/big-walk.jpg?width=690&quality=85")!
 
-        XCTAssertEqual(ImageVariant.url(url, targetingWidth: 900), url)
+        // when
+        let variant = ImageVariant.url(url, targetingWidth: 900)
+
+        // then
+        XCTAssertEqual(variant, url)
     }
 
     func test_givenAnyWidth_whenRewriting_thenUsesAWidthTheCDNIsLikelyToHave() {
+        // given
         let url = URL(string: "https://ichef.bbci.co.uk/ace/standard/240/x.jpg")!
 
+        // when
         // 500 is not a rendition anyone publishes; the next one up the ladder is.
+
+        // then
         XCTAssertEqual(
             ImageVariant.url(url, targetingWidth: 500).absoluteString,
             "https://ichef.bbci.co.uk/ace/standard/640/x.jpg"

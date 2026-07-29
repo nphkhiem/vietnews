@@ -5,6 +5,7 @@ final class RefreshNewsUseCaseTests: XCTestCase {
     private let fixedNow = Date(timeIntervalSince1970: 10_000)
 
     func test_givenFreshCache_whenExecuting_thenBypassesCacheAndSaves() async throws {
+        // given
         let articleRepo = MockArticleRepository()
         let cacheRepo = MockCacheRepository()
         cacheRepo.stored["sport_vi"] = CachedArticles(
@@ -17,8 +18,10 @@ final class RefreshNewsUseCaseTests: XCTestCase {
             articleRepository: articleRepo, cacheRepository: cacheRepo, now: { self.fixedNow }
         )
 
+        // when
         let result = try await sut.execute(category: .sport, language: .vietnamese)
 
+        // then
         XCTAssertEqual(articleRepo.fetchCallCount, 1)
         XCTAssertEqual(result.articles, fresh)
         XCTAssertFalse(result.isFromCache)
@@ -26,17 +29,19 @@ final class RefreshNewsUseCaseTests: XCTestCase {
     }
 
     func test_givenFetchFailure_whenExecuting_thenRethrowsError() async {
+        // given
         let articleRepo = MockArticleRepository()
         articleRepo.result = .failure(NewsError.networkUnavailable)
         let sut = RefreshNewsUseCase(
             articleRepository: articleRepo, cacheRepository: MockCacheRepository()
         )
 
-        do {
+        // when
+        let thrown = await errorThrown {
             _ = try await sut.execute(category: .sport, language: .vietnamese)
-            XCTFail("Expected throw")
-        } catch {
-            XCTAssertEqual(error as? NewsError, .networkUnavailable)
         }
+
+        // then
+        XCTAssertEqual(thrown as? NewsError, .networkUnavailable)
     }
 }
